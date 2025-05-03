@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Timeline Puzzle Prototype</title>
+    <link rel="stylesheet" href="puzzles.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #16213e;
+            color: #e6e6e6;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        h1 {
+            color: #4cc9f0;
+        }
+        
+        /* Timeline slots styling */
+        .timeline-slots {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 30px;
+            border: 2px dashed #4cc9f0;
+            padding: 20px;
+            border-radius: 8px;
+            min-height: 200px;
+        }
+        
+        .timeline-slot {
+            background-color: rgba(15, 52, 96, 0.6);
+            border-radius: 5px;
+            padding: 15px;
+            min-height: 70px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 2px dashed rgba(76, 201, 240, 0.3);
+        }
+        
+        .timeline-slot.filled {
+            border: none;
+        }
+        
+        .slot-placeholder {
+            color: #4cc9f0;
+            opacity: 0.5;
+        }
+        
+        /* Clue cards area */
+        .clue-cards-container {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: rgba(15, 52, 96, 0.4);
+            border-radius: 8px;
+        }
+        
+        .clue-cards-heading {
+            color: #e6e6e6;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .clue-cards {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+        }
+        
+        .clue-card {
+            background-color: #0f3460;
+            border-radius: 5px;
+            padding: 15px;
+            width: 200px;
+            cursor: grab;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .clue-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+        }
+        
+        .clue-card.dragging {
+            opacity: 0.5;
+        }
+        
+        .clue-card-time {
+            font-weight: bold;
+            color: #4cc9f0;
+            margin-bottom: 8px;
+        }
+        
+        .clue-card-content {
+            font-size: 0.9em;
+            line-height: 1.4;
+        }
+        
+        /* Submit button */
+        .submit-container {
+            text-align: center;
+            margin-top: 30px;
+        }
+        
+        .submit-button {
+            background-color: #4cc9f0;
+            color: #0f3460;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 5px;
+            font-weight: bold;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .submit-button:hover {
+            background-color: #66d4ff;
+        }
+        
+        /* Feedback area */
+        .feedback-area {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            text-align: center;
+            display: none;
+        }
+        
+        .feedback-correct {
+            background-color: rgba(124, 241, 168, 0.2);
+            color: #7bf1a8;
+        }
+        
+        .feedback-incorrect {
+            background-color: rgba(255, 77, 109, 0.2);
+            color: #ff4d6d;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Timeline Puzzle Prototype</h1>
+            <p>Drag and drop the clue cards to arrange events in the correct order</p>
+        </header>
+        
+        <div class="timeline-puzzle">
+            <div class="puzzle-header">
+                <h2>The Night of the Storm</h2>
+                <p>Reconstruct the sequence of events from the night of the great storm three months ago.</p>
+            </div>
+            
+            <!-- Timeline Slots -->
+            <div class="timeline-slots" id="timelineSlots">
+                <div class="timeline-slot" data-position="0">
+                    <div class="slot-placeholder">Drag first event here</div>
+                </div>
+                <div class="timeline-slot" data-position="1">
+                    <div class="slot-placeholder">Drag second event here</div>
+                </div>
+                <div class="timeline-slot" data-position="2">
+                    <div class="slot-placeholder">Drag third event here</div>
+                </div>
+            </div>
+            
+            <!-- Clue Cards Container -->
+            <div class="clue-cards-container">
+                <h3 class="clue-cards-heading">Available Evidence</h3>
+                <div class="clue-cards" id="clueCards">
+                    <div class="clue-card" draggable="true" data-event-id="event_tree_falls">
+                        <div class="clue-card-time">9:15 PM</div>
+                        <div class="clue-card-content">Large oak tree falls near the park entrance</div>
+                    </div>
+                    <div class="clue-card" draggable="true" data-event-id="event_power_outage">
+                        <div class="clue-card-time">8:30 PM</div>
+                        <div class="clue-card-content">Power outage reported across neighborhood</div>
+                    </div>
+                    <div class="clue-card" draggable="true" data-event-id="event_storm_warning">
+                        <div class="clue-card-time">6:00 PM</div>
+                        <div class="clue-card-content">Emergency storm warning issued for Maplewood area</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Submit Button -->
+            <div class="submit-container">
+                <button id="submitButton" class="submit-button">Check Timeline</button>
+            </div>
+            
+            <!-- Feedback Area -->
+            <div id="feedbackArea" class="feedback-area"></div>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const clueCards = document.querySelectorAll('.clue-card');
+            const timelineSlots = document.querySelectorAll('.timeline-slot');
+            const submitButton = document.getElementById('submitButton');
+            const feedbackArea = document.getElementById('feedbackArea');
+            
+            // The correct order of events
+            const correctOrder = [
+                "event_storm_warning",
+                "event_power_outage",
+                "event_tree_falls"
+            ];
+            
+            // Add drag event listeners to clue cards
+            clueCards.forEach(card => {
+                card.addEventListener('dragstart', handleDragStart);
+                card.addEventListener('dragend', handleDragEnd);
+            });
+            
+            // Add drop event listeners to timeline slots
+            timelineSlots.forEach(slot => {
+                slot.addEventListener('dragover', handleDragOver);
+                slot.addEventListener('dragenter', handleDragEnter);
+                slot.addEventListener('dragleave', handleDragLeave);
+                slot.addEventListener('drop', handleDrop);
+            });
+            
+            // Handle submit button click
+            submitButton.addEventListener('click', checkSolution);
+            
+            // Drag and drop functions
+            function handleDragStart(e) {
+                this.classList.add('dragging');
+                e.dataTransfer.setData('text/plain', this.dataset.eventId);
+                e.dataTransfer.effectAllowed = 'move';
+            }
+            
+            function handleDragEnd() {
+                this.classList.remove('dragging');
+            }
+            
+            function handleDragOver(e) {
+                e.preventDefault();
+                return false;
+            }
+            
+            function handleDragEnter(e) {
+                e.preventDefault();
+                this.classList.add('drag-over');
+            }
+            
+            function handleDragLeave() {
+                this.classList.remove('drag-over');
+            }
+            
+            function handleDrop(e) {
+                e.preventDefault();
+                
+                const eventId = e.dataTransfer.getData('text/plain');
+                const draggedCard = document.querySelector(`.clue-card[data-event-id="${eventId}"]`);
+                
+                // Check if slot already has a card
+                if (this.querySelector('.clue-card')) {
+                    return false;
+                }
+                
+                // If card is in another slot, remove it
+                const previousSlot = document.querySelector('.timeline-slot .clue-card');
+                if (previousSlot && previousSlot.dataset.eventId === eventId) {
+                    previousSlot.parentNode.removeChild(previousSlot);
+                    previousSlot.parentNode.classList.remove('filled');
+                    const placeholder = document.createElement('div');
+                    placeholder.className = 'slot-placeholder';
+                    placeholder.textContent = 'Drag event here';
+                    previousSlot.parentNode.appendChild(placeholder);
+                }
+                
+                // Remove any placeholder text
+                const placeholder = this.querySelector('.slot-placeholder');
+                if (placeholder) {
+                    this.removeChild(placeholder);
+                }
+                
+                // Clone the card and append to slot
+                const cardClone = draggedCard.cloneNode(true);
+                this.appendChild(cardClone);
+                this.classList.add('filled');
+                this.classList.remove('drag-over');
+                
+                return false;
+            }
+            
+            // Check solution function
+            function checkSolution() {
+                const filledSlots = document.querySelectorAll('.timeline-slot.filled');
+                
+                // Check if all slots are filled
+                if (filledSlots.length < timelineSlots.length) {
+                    showFeedback(false, "Fill all timeline slots before submitting!");
+                    return;
+                }
+                
+                // Get current order
+                const currentOrder = [];
+                timelineSlots.forEach(slot => {
+                    const card = slot.querySelector('.clue-card');
+                    if (card) {
+                        currentOrder.push(card.dataset.eventId);
+                    }
+                });
+                
+                // Check if order is correct
+                const isCorrect = JSON.stringify(currentOrder) === JSON.stringify(correctOrder);
+                
+                // Show feedback
+                if (isCorrect) {
+                    showFeedback(true, "Correct! You've successfully reconstructed the timeline.");
+                } else {
+                    showFeedback(false, "That's not quite right. Try rearranging the events.");
+                }
+            }
+            
+            // Show feedback function
+            function showFeedback(isCorrect, message) {
+                feedbackArea.textContent = message;
+                feedbackArea.className = 'feedback-area';
+                feedbackArea.classList.add(isCorrect ? 'feedback-correct' : 'feedback-incorrect');
+                feedbackArea.style.display = 'block';
+                
+                // Hide feedback after delay if incorrect
+                if (!isCorrect) {
+                    setTimeout(() => {
+                        feedbackArea.style.display = 'none';
+                    }, 3000);
+                }
+            }
+        });
+    </script>
+</body>
+</html> 

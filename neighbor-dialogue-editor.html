@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maplewood Lane - Neighbor Dialogue Editor</title>
+    <style>
+        :root {
+            --primary-bg: #16213e;
+            --secondary-bg: #0f3460;
+            --accent: #4cc9f0;
+            --accent-hover: #66d4ff;
+            --text: #e6e6e6;
+            --muted-text: #a0a0a0;
+            --success: #7bf1a8;
+            --warning: #ffbd69;
+            --error: #ff4d6d;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: var(--primary-bg);
+            color: var(--text);
+            line-height: 1.6;
+            padding: 20px;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 1px solid var(--accent);
+            padding-bottom: 20px;
+        }
+        
+        h1 {
+            color: var(--accent);
+            margin-bottom: 10px;
+        }
+        
+        .editor-container {
+            display: flex;
+            gap: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .sidebar {
+            flex: 0 0 280px;
+            background-color: var(--secondary-bg);
+            border-radius: 8px;
+            padding: 20px;
+        }
+        
+        .main-content {
+            flex: 1;
+            min-height: 600px;
+        }
+        
+        /* Character List */
+        .character-list {
+            margin-bottom: 20px;
+        }
+        
+        .character-item {
+            padding: 10px;
+            margin-bottom: 8px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            display: flex;
+            align-items: center;
+        }
+        
+        .character-item:hover {
+            background-color: rgba(76, 201, 240, 0.1);
+        }
+        
+        .character-item.active {
+            background-color: rgba(76, 201, 240, 0.2);
+            border-left: 3px solid var(--accent);
+        }
+        
+        .character-portrait {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--accent);
+            margin-right: 10px;
+            background-size: cover;
+            background-position: center;
+        }
+        
+        .character-name {
+            font-weight: bold;
+        }
+        
+        /* Personality Section */
+        .personality-section {
+            background-color: var(--secondary-bg);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .section-title {
+            color: var(--accent);
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .trait-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .trait-tag {
+            background-color: rgba(76, 201, 240, 0.15);
+            border-radius: 15px;
+            padding: 5px 12px;
+            font-size: 0.9em;
+            display: flex;
+            align-items: center;
+        }
+        
+        .trait-tag .remove-trait {
+            margin-left: 8px;
+            cursor: pointer;
+            color: var(--muted-text);
+        }
+        
+        .trait-tag .remove-trait:hover {
+            color: var(--error);
+        }
+        
+        .add-trait {
+            display: flex;
+            gap: 10px;
+        }
+        
+        /* Dialogue Section */
+        .dialogue-section {
+            background-color: var(--secondary-bg);
+            border-radius: 8px;
+            padding: 20px;
+        }
+        
+        .dialogue-tree {
+            margin-top: 20px;
+        }
+        
+        .dialogue-node {
+            background-color: rgba(15, 52, 96, 0.6);
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-left: 3px solid var(--accent);
+        }
+        
+        .dialogue-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid rgba(76, 201, 240, 0.3);
+        }
+        
+        .dialogue-id {
+            font-weight: bold;
+            color: var(--accent);
+        }
+        
+        .dialogue-actions button {
+            background: none;
+            border: none;
+            color: var(--muted-text);
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: color 0.2s;
+        }
+        
+        .dialogue-actions button:hover {
+            color: var(--accent);
+        }
+        
+        .dialogue-conditions {
+            background-color: rgba(15, 52, 96, 0.8);
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            font-size: 0.9em;
+        }
+        
+        .condition-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+        
+        .condition-type {
+            color: var(--muted-text);
+        }
+        
+        .condition-value {
+            color: var(--accent);
+        }
+        
+        .dialogue-content {
+            background-color: rgba(76, 201, 240, 0.05);
+            padding: 10px 15px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            position: relative;
+        }
+        
+        .dialogue-speaker {
+            font-weight: bold;
+            color: var(--accent);
+            margin-bottom: 5px;
+        }
+        
+        .dialogue-choices {
+            margin-top: 15px;
+        }
+        
+        .choice-item {
+            padding: 8px 12px;
+            background-color: rgba(15, 52, 96, 0.4);
+            border-radius: 5px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .choice-item:hover {
+            background-color: rgba(15, 52, 96, 0.6);
+        }
+        
+        .consequence {
+            font-size: 0.85em;
+            color: var(--muted-text);
+            margin-top: 5px;
+        }
+        
+        .consequence-trust-gain {
+            color: var(--success);
+        }
+        
+        .consequence-trust-loss {
+            color: var(--error);
+        }
+        
+        /* Form Controls */
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: var(--muted-text);
+        }
+        
+        input, select, textarea {
+            width: 100%;
+            padding: 8px 12px;
+            background-color: rgba(15, 52, 96, 0.6);
+            border: 1px solid rgba(76, 201, 240, 0.3);
+            border-radius: 5px;
+            color: var(--text);
+            font-size: 0.95em;
+        }
+        
+        textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+        
+        button {
+            background-color: var(--accent);
+            color: var(--primary-bg);
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.2s;
+        }
+        
+        button:hover {
+            background-color: var(--accent-hover);
+        }
+        
+        button.secondary {
+            background-color: rgba(76, 201, 240, 0.2);
+            color: var(--accent);
+        }
+        
+        button.secondary:hover {
+            background-color: rgba(76, 201, 240, 0.3);
+        }
+        
+        button.danger {
+            background-color: var(--error);
+        }
+        
+        /* Trust Slider */
+        .trust-slider-container {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: rgba(15, 52, 96, 0.4);
+            border-radius: 5px;
+        }
+        
+        .trust-slider {
+            width: 100%;
+            margin-top: 10px;
+        }
+        
+        .trust-value {
+            font-size: 1.2em;
+            font-weight: bold;
+            text-align: center;
+            margin-top: 10px;
+            color: var(--accent);
+        }
+        
+        .trust-thresholds {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8em;
+            color: var(--muted-text);
+            margin-top: 5px;
+        }
+        
+        /* Preview Section */
+        .preview-section {
+            margin-top: 30px;
+            border-top: 1px solid rgba(76, 201, 240, 0.3);
+            padding-top: 20px;
+        }
+        
+        .preview-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+        
+        .preview-controls {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+        
+        .time-toggle {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .time-option {
+            padding: 5px 10px;
+            background-color: rgba(15, 52, 96, 0.4);
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9em;
+        }
+        
+        .time-option.active {
+            background-color: rgba(76, 201, 240, 0.2);
+            color: var(--accent);
+        }
+        
+        .dialogue-preview {
+            background-color: rgba(15, 52, 96, 0.8);
+            border-radius: 8px;
+            padding: 20px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .preview-portrait {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            margin-right: 15px;
+            background-color: var(--accent);
+            float: left;
+        }
+        
+        .preview-dialogue {
+            margin-left: 75px;
+        }
+        
+        .preview-speaker {
+            font-weight: bold;
+            color: var(--accent);
+            margin-bottom: 10px;
+        }
+        
+        .preview-text {
+            line-height: 1.5;
+            margin-bottom: 20px;
+        }
+        
+        .preview-choices {
+            margin-top: 20px;
+        }
+        
+        .preview-choice {
+            background-color: rgba(76, 201, 240, 0.1);
+            padding: 10px 15px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .preview-choice:hover {
+            background-color: rgba(76, 201, 240, 0.2);
+        }
+        
+        /* Utility Classes */
+        .hidden {
+            display: none;
+        }
+        
+        .flex {
+            display: flex;
+        }
+        
+        .space-between {
+            justify-content: space-between;
+        }
+        
+        .align-center {
+            align-items: center;
+        }
+        
+        .gap-10 {
+            gap: 10px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Maplewood Lane Neighbor Dialogue Editor</h1>
+        <p>Create and test personality-driven dialogues for your interactive narrative</p>
+    </header>
+    
+    <div class="editor-container">
+        <!-- Character Selection Sidebar -->
+        <div class="sidebar">
+            <h3 class="section-title">Characters</h3>
+            <div class="character-list" id="characterList">
+                <div class="character-item active" data-character="mrs_finch">
+                    <div class="character-portrait" style="background-color: #e57373;"></div>
+                    <div class="character-name">Mrs. Finch</div>
+                </div>
+                <div class="character-item" data-character="jake">
+                    <div class="character-portrait" style="background-color: #64b5f6;"></div>
+                    <div class="character-name">Jake</div>
+                </div>
+                <div class="character-item" data-character="camille">
+                    <div class="character-portrait" style="background-color: #81c784;"></div>
+                    <div class="character-name">Camille</div>
+                </div>
+                <div class="character-item" data-character="mr_arnold">
+                    <div class="character-portrait" style="background-color: #9575cd;"></div>
+                    <div class="character-name">Mr. Arnold</div>
+                </div>
+                <div class="character-item" data-character="lila">
+                    <div class="character-portrait" style="background-color: #ffb74d;"></div>
+                    <div class="character-name">Lila</div>
+                </div>
+            </div>
+            
+            <div class="trust-slider-container">
+                <h3>Trust Level Preview</h3>
+                <input type="range" min="0" max="100" value="25" class="trust-slider" id="trustSlider">
+                <div class="trust-value" id="trustValue">25</div>
+                <div class="trust-thresholds">
+                    <span>0 (Suspicious)</span>
+                    <span>50 (Neutral)</span>
+                    <span>100 (Trusting)</span>
+                </div>
+            </div>
+            
+            <div class="actions">
+                <button id="newDialogueBtn" class="secondary">+ New Dialogue</button>
+                <button id="exportDataBtn">Export Data</button>
+            </div>
+        </div>
+        
+        <!-- Main Editor Area -->
+        <div class="main-content">
+            <!-- Character Personality Section -->
+            <section class="personality-section">
+                <h2 class="section-title">
+                    Personality: Mrs. Finch
+                    <button class="secondary" id="editPersonalityBtn">Edit</button>
+                </h2>
+                
+                <div class="personality-details">
+                    <div class="form-group">
+                        <label>Archetype</label>
+                        <div>Nosy Elder</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Hidden Layer (High Trust Reveal)</label>
+                        <div>She's protecting someone involved</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Trust Thresholds</label>
+                        <div class="flex gap-10">
+                            <span class="trait-tag">Baseline: 0-24</span>
+                            <span class="trait-tag">Mid-trust: 25-49</span>
+                            <span class="trait-tag">Revealing: 50-74</span>
+                            <span class="trait-tag">Truth: 75+</span>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Personality Traits</label>
+                        <div class="trait-list">
+                            <div class="trait-tag">Nosy <span class="remove-trait">✕</span></div>
+                            <div class="trait-tag">Protective <span class="remove-trait">✕</span></div>
+                            <div class="trait-tag">Secretive <span class="remove-trait">✕</span></div>
+                            <div class="trait-tag">Anxious <span class="remove-trait">✕</span></div>
+                        </div>
+                        
+                        <div class="add-trait">
+                            <input type="text" placeholder="New trait..." id="newTraitInput">
+                            <button class="secondary" id="addTraitBtn">Add</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Dialogue Tree Section -->
+            <section class="dialogue-section">
+                <h2 class="section-title">
+                    Dialogue Tree
+                    <button class="secondary" id="addDialogueNodeBtn">+ Add Node</button>
+                </h2>
+                
+                <div class="dialogue-tree" id="dialogueTree">
+                    <!-- Example Dialogue Node -->
+                    <div class="dialogue-node">
+                        <div class="dialogue-header">
+                            <div class="dialogue-id">intro</div>
+                            <div class="dialogue-actions">
+                                <button>Edit</button>
+                                <button>Duplicate</button>
+                                <button>Delete</button>
+                            </div>
+                        </div>
+                        
+                        <div class="dialogue-conditions">
+                            <div class="condition-item">
+                                <span class="condition-type">Trust Level:</span>
+                                <span class="condition-value">0+</span>
+                            </div>
+                        </div>
+                        
+                        <div class="dialogue-content">
+                            <div class="dialogue-speaker">MRS. FINCH:</div>
+                            <div>Oh, hello dear. You're the new investigator, aren't you? Looking into poor Iris's disappearance. Such a shame.</div>
+                        </div>
+                        
+                        <div class="dialogue-choices">
+                            <div class="choice-item">
+                                <div>What do you know about Iris?</div>
+                                <div class="consequence consequence-trust-gain">+5 Trust, Go to: about_iris</div>
+                            </div>
+                            <div class="choice-item">
+                                <div>You seem to know a lot about everyone here.</div>
+                                <div class="consequence">Go to: neighborhood_watch</div>
+                            </div>
+                            <div class="choice-item">
+                                <div>Did you see anything suspicious the night she vanished?</div>
+                                <div class="consequence consequence-trust-loss">-5 Trust if Trust < 25, Go to: defensive</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Another Example Node -->
+                    <div class="dialogue-node">
+                        <div class="dialogue-header">
+                            <div class="dialogue-id">about_iris</div>
+                            <div class="dialogue-actions">
+                                <button>Edit</button>
+                                <button>Duplicate</button>
+                                <button>Delete</button>
+                            </div>
+                        </div>
+                        
+                        <div class="dialogue-conditions">
+                            <div class="condition-item">
+                                <span class="condition-type">Trust Level:</span>
+                                <span class="condition-value">5+</span>
+                            </div>
+                            <div class="condition-item">
+                                <span class="condition-type">Previous Node:</span>
+                                <span class="condition-value">intro</span>
+                            </div>
+                        </div>
+                        
+                        <div class="dialogue-content">
+                            <div class="dialogue-speaker">MRS. FINCH:</div>
+                            <div>Iris? Such a sweet girl. Always helping with neighborhood events. Had a curious nature though, maybe too curious for her own good.</div>
+                        </div>
+                        
+                        <div class="dialogue-choices">
+                            <div class="choice-item">
+                                <div>What do you mean by "too curious"?</div>
+                                <div class="consequence">Go to: iris_curious</div>
+                            </div>
+                            <div class="choice-item">
+                                <div>Did she have enemies in the neighborhood?</div>
+                                <div class="consequence consequence-trust-gain">+5 Trust if "Protective" trait, Go to: iris_friends</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Trust-Dependent Node Example -->
+                    <div class="dialogue-node">
+                        <div class="dialogue-header">
+                            <div class="dialogue-id">secret_confession</div>
+                            <div class="dialogue-actions">
+                                <button>Edit</button>
+                                <button>Duplicate</button>
+                                <button>Delete</button>
+                            </div>
+                        </div>
+                        
+                        <div class="dialogue-conditions">
+                            <div class="condition-item">
+                                <span class="condition-type">Trust Level:</span>
+                                <span class="condition-value">75+</span>
+                            </div>
+                            <div class="condition-item">
+                                <span class="condition-type">Time of Day:</span>
+                                <span class="condition-value">Night</span>
+                            </div>
+                            <div class="condition-item">
+                                <span class="condition-type">Has Clue:</span>
+                                <span class="condition-value">finch_window_photo</span>
+                            </div>
+                        </div>
+                        
+                        <div class="dialogue-content">
+                            <div class="dialogue-speaker">MRS. FINCH:</div>
+                            <div>*lowers voice* I... I didn't want to tell anyone this. That night, I saw someone from my window. A figure near Arnold's house, carrying something. I think... I think it was Jake.</div>
+                        </div>
+                        
+                        <div class="dialogue-choices">
+                            <div class="choice-item">
+                                <div>Are you certain it was Jake?</div>
+                                <div class="consequence">Unlock Clue: "finch_jake_sighting", Go to: uncertain_identification</div>
+                            </div>
+                            <div class="choice-item">
+                                <div>Why didn't you tell the police?</div>
+                                <div class="consequence consequence-trust-loss">-10 Trust, Go to: protective_explanation</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Preview Section -->
+            <section class="preview-section">
+                <div class="preview-header">
+                    <h2 class="section-title">Preview Dialogue</h2>
+                    <div class="preview-controls">
+                        <div class="time-toggle">
+                            <span>Time:</span>
+                            <div class="time-option active" data-time="day">Day</div>
+                            <div class="time-option" data-time="night">Night</div>
+                        </div>
+                        <button id="resetPreviewBtn" class="secondary">Reset</button>
+                    </div>
+                </div>
+                
+                <div class="dialogue-preview">
+                    <div class="preview-portrait" style="background-color: #e57373;"></div>
+                    <div class="preview-dialogue">
+                        <div class="preview-speaker">MRS. FINCH:</div>
+                        <div class="preview-text">Oh, hello dear. You're the new investigator, aren't you? Looking into poor Iris's disappearance. Such a shame.</div>
+                        
+                        <div class="preview-choices">
+                            <div class="preview-choice">What do you know about Iris?</div>
+                            <div class="preview-choice">You seem to know a lot about everyone here.</div>
+                            <div class="preview-choice">Did you see anything suspicious the night she vanished?</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Trust slider functionality
+            const trustSlider = document.getElementById('trustSlider');
+            const trustValue = document.getElementById('trustValue');
+            
+            trustSlider.addEventListener('input', function() {
+                trustValue.textContent = this.value;
+                updateDialoguePreview();
+            });
+            
+            // Character selection
+            const characterItems = document.querySelectorAll('.character-item');
+            characterItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    // Remove active class from all items
+                    characterItems.forEach(i => i.classList.remove('active'));
+                    // Add active class to clicked item
+                    this.classList.add('active');
+                    
+                    // Update character data
+                    const characterId = this.getAttribute('data-character');
+                    loadCharacterData(characterId);
+                });
+            });
+            
+            // Time of day toggle
+            const timeOptions = document.querySelectorAll('.time-option');
+            timeOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    timeOptions.forEach(o => o.classList.remove('active'));
+                    this.classList.add('active');
+                    updateDialoguePreview();
+                });
+            });
+            
+            // Example dialogue choices
+            const previewChoices = document.querySelectorAll('.preview-choice');
+            previewChoices.forEach(choice => {
+                choice.addEventListener('click', function() {
+                    // In a real implementation, this would advance the dialogue
+                    this.style.backgroundColor = 'rgba(76, 201, 240, 0.3)';
+                    setTimeout(() => {
+                        this.style.backgroundColor = '';
+                    }, 300);
+                });
+            });
+            
+            // Placeholder function for character data loading
+            function loadCharacterData(characterId) {
+                console.log('Loading character data for:', characterId);
+                // In a real implementation, this would load data from a store
+                document.querySelector('.personality-section h2').textContent = 'Personality: ' + 
+                    characterId.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+                
+                updateDialoguePreview();
+            }
+            
+            // Placeholder function for dialogue preview updates
+            function updateDialoguePreview() {
+                const trustLevel = trustSlider.value;
+                const timeOfDay = document.querySelector('.time-option.active').getAttribute('data-time');
+                const characterId = document.querySelector('.character-item.active').getAttribute('data-character');
+                
+                console.log('Updating preview:', { character: characterId, trust: trustLevel, time: timeOfDay });
+                // In a real implementation, this would update the preview based on conditions
+            }
+            
+            // Initialize the editor
+            loadCharacterData('mrs_finch');
+        });
+    </script>
+</body>
+</html> 

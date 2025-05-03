@@ -1,0 +1,458 @@
+/**
+ * puzzles.css
+ * Combined styles for all puzzle types in Maplewood Lane
+ */
+
+/* Common puzzle styles */
+.puzzle-header {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.puzzle-header h2 {
+    color: #4cc9f0;
+    margin-bottom: 10px;
+}
+
+.puzzle-feedback {
+    margin-top: 20px;
+    padding: 15px;
+    border-radius: 5px;
+    text-align: center;
+    animation: fadeIn 0.3s ease;
+}
+
+.puzzle-feedback.correct {
+    background-color: rgba(124, 241, 168, 0.2);
+    color: #7bf1a8;
+}
+
+.puzzle-feedback.incorrect {
+    background-color: rgba(255, 77, 109, 0.2);
+    color: #ff4d6d;
+}
+
+.fade-out {
+    animation: fadeOut 1s ease forwards;
+}
+
+/* Timeline Puzzle styles */
+.timeline-puzzle {
+    background-color: #16213e;
+    border-radius: 8px;
+    padding: 20px;
+    font-family: Arial, sans-serif;
+    color: #e6e6e6;
+    max-width: 800px;
+    margin: 0 auto;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.timeline-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 20px;
+    min-height: 300px;
+}
+
+.timeline-event {
+    background-color: #0f3460;
+    padding: 15px;
+    border-radius: 5px;
+    cursor: grab;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: background-color 0.2s, transform 0.2s;
+}
+
+.timeline-event:hover {
+    background-color: #1a1a2e;
+}
+
+.timeline-event.dragging {
+    opacity: 0.5;
+}
+
+.event-time {
+    background-color: #1a1a2e;
+    padding: 5px 10px;
+    border-radius: 3px;
+    font-weight: bold;
+    color: #4cc9f0;
+    min-width: 100px;
+    text-align: center;
+}
+
+.event-text {
+    flex: 1;
+    padding-left: 15px;
+}
+
+/* Contradiction Puzzle styles */
+.contradiction-puzzle {
+    background-color: #16213e;
+    border-radius: 8px;
+    padding: 20px;
+    font-family: Arial, sans-serif;
+    color: #e6e6e6;
+    max-width: 800px;
+    margin: 0 auto;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.character-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.character-portrait {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background-color: #0f3460;
+    margin: 15px 0;
+    background-size: cover;
+    background-position: center;
+    border: 3px solid #4cc9f0;
+    box-shadow: 0 0 10px rgba(76, 201, 240, 0.5);
+}
+
+.character-statement {
+    background-color: #0f3460;
+    padding: 15px;
+    border-radius: 5px;
+    margin: 10px 0;
+    font-style: italic;
+    text-align: center;
+    max-width: 80%;
+}
+
+.evidence-button {
+    background-color: #e63946;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    margin: 0 auto;
+    display: block;
+    transition: background-color 0.2s;
+}
+
+.evidence-button:hover {
+    background-color: #ff4d6d;
+}
+
+.evidence-selector {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.evidence-selector h3 {
+    color: #4cc9f0;
+    margin-bottom: 20px;
+}
+
+.evidence-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 15px;
+    max-width: 800px;
+    max-height: 60vh;
+    overflow-y: auto;
+    padding: 10px;
+    background-color: #16213e;
+    border-radius: 8px;
+}
+
+.evidence-item {
+    background-color: #0f3460;
+    padding: 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    text-align: center;
+    transition: background-color 0.2s, transform 0.2s;
+}
+
+.evidence-item:hover {
+    background-color: #1a1a2e;
+    transform: scale(1.05);
+}
+
+.evidence-icon {
+    font-size: 24px;
+    margin-bottom: 10px;
+}
+
+.evidence-item.photo .evidence-icon {
+    color: #4cc9f0;
+}
+
+.evidence-item.clue .evidence-icon {
+    color: #ffbd69;
+}
+
+.close-selector-btn {
+    margin-top: 20px;
+    padding: 10px 15px;
+    background-color: #0f3460;
+    color: #e6e6e6;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+/* Photo Assembly Puzzle styles */
+.photo-assembly-puzzle {
+    background-color: #16213e;
+    border-radius: 8px;
+    padding: 20px;
+    font-family: Arial, sans-serif;
+    color: #e6e6e6;
+    max-width: 800px;
+    margin: 0 auto;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.photos-container h3 {
+    color: #e6e6e6;
+    margin-bottom: 15px;
+}
+
+.photo-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.photo-item {
+    background-color: #0f3460;
+    border-radius: 5px;
+    padding: 10px;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.photo-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+.photo-item.selected {
+    border: 2px solid #4cc9f0;
+    box-shadow: 0 0 10px rgba(76, 201, 240, 0.5);
+}
+
+.photo-thumbnail {
+    height: 100px;
+    background-color: #1a1a2e;
+    margin-bottom: 10px;
+    border-radius: 3px;
+    background-size: cover;
+    background-position: center;
+}
+
+/* Photo type backgrounds */
+.photo-type-house-east {
+    background-image: linear-gradient(to right, #2a3990, #0f3460);
+}
+
+.photo-type-house-north {
+    background-image: linear-gradient(to bottom, #2a3990, #0f3460);
+}
+
+.photo-type-house-west {
+    background-image: linear-gradient(to left, #2a3990, #0f3460);
+}
+
+.photo-type-flickerPhoto {
+    background-image: radial-gradient(circle, #ffde7d, #16213e);
+}
+
+.photo-type-shadowPhoto {
+    background-image: linear-gradient(to bottom, #16213e, #000000);
+}
+
+.photo-info {
+    padding: 5px;
+}
+
+.photo-title {
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.photo-meta {
+    font-size: 0.8em;
+    color: #aaa;
+}
+
+.no-photos {
+    grid-column: 1 / -1;
+    padding: 20px;
+    text-align: center;
+    background-color: #0f3460;
+    border-radius: 5px;
+    color: #aaa;
+}
+
+.assemble-button {
+    background-color: #4cc9f0;
+    color: #0f3460;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    margin: 0 auto;
+    display: block;
+    transition: background-color 0.2s;
+}
+
+.assemble-button:hover:not(.disabled) {
+    background-color: #66d4ff;
+}
+
+.assemble-button.disabled {
+    background-color: #666;
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+.preview-area {
+    min-height: 200px;
+    background-color: #0f3460;
+    border-radius: 5px;
+    padding: 20px;
+    margin-top: 20px;
+}
+
+.assembled-result {
+    position: relative;
+    width: 100%;
+}
+
+.photo-panorama {
+    display: flex;
+    height: 200px;
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+.panorama-segment {
+    flex: 1;
+    background-size: cover;
+    background-position: center;
+    transition: transform 0.5s;
+}
+
+.panorama-segment:hover {
+    transform: scale(1.05);
+}
+
+.revealed-element {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 60px;
+    height: 150px;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    z-index: 10;
+    animation: fadeInSlow 3s ease-in-out;
+    opacity: 0.7;
+}
+
+.reveal-shadow-figure {
+    background-color: rgba(0, 0, 0, 0.7);
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+    border-radius: 10px;
+}
+
+.reveal-description {
+    text-align: center;
+    margin-top: 20px;
+    color: #ffbd69;
+    font-style: italic;
+    animation: fadeIn 1s ease-in-out;
+}
+
+.failed-arrangement {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    height: 200px;
+    position: relative;
+}
+
+.failed-segment {
+    width: 100px;
+    height: 100px;
+    margin: 5px;
+    background-size: cover;
+    background-position: center;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+}
+
+.fail-message {
+    text-align: center;
+    margin-top: 20px;
+    color: #aaa;
+    font-style: italic;
+}
+
+/* Button styles */
+.check-solution-btn, .shuffle-btn {
+    padding: 10px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    margin: 0 10px;
+}
+
+.check-solution-btn {
+    background-color: #4cc9f0;
+    color: #0f3460;
+}
+
+.shuffle-btn {
+    background-color: #0f3460;
+    color: #e6e6e6;
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes fadeInSlow {
+    0% { opacity: 0; }
+    50% { opacity: 0.3; }
+    100% { opacity: 0.7; }
+}
+
+@keyframes fadeOut {
+    from { opacity: 1; }
+    to { opacity: 0; }
+} 

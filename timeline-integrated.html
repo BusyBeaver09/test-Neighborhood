@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maplewood Lane - Integrated Timeline Puzzle</title>
+    <link rel="stylesheet" href="puzzles.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #16213e;
+            color: #e6e6e6;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        h1 {
+            color: #4cc9f0;
+        }
+        
+        .puzzle-display {
+            margin-top: 40px;
+        }
+        
+        .debug-panel {
+            margin-top: 30px;
+            padding: 15px;
+            background-color: rgba(15, 52, 96, 0.4);
+            border-radius: 8px;
+        }
+        
+        .debug-panel h3 {
+            color: #4cc9f0;
+            margin-top: 0;
+        }
+        
+        .debug-info {
+            font-family: monospace;
+            background-color: #0f3460;
+            padding: 10px;
+            border-radius: 5px;
+            white-space: pre-wrap;
+            overflow-x: auto;
+            color: #bdc3c7;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .buttons-container {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+            justify-content: center;
+        }
+        
+        .control-button {
+            background-color: #0f3460;
+            color: #e6e6e6;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.2s;
+        }
+        
+        .control-button:hover {
+            background-color: #4cc9f0;
+            color: #0f3460;
+        }
+        
+        /* Enhanced timeline styles */
+        .timeline-slots {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin: 30px 0;
+            border: 2px dashed #4cc9f0;
+            padding: 20px;
+            border-radius: 8px;
+            min-height: 200px;
+        }
+        
+        .timeline-slot {
+            background-color: rgba(15, 52, 96, 0.6);
+            border-radius: 5px;
+            padding: 15px;
+            min-height: 70px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 2px dashed rgba(76, 201, 240, 0.3);
+        }
+        
+        .timeline-slot.filled {
+            border: none;
+        }
+        
+        .slot-placeholder {
+            color: #4cc9f0;
+            opacity: 0.5;
+        }
+        
+        /* Animation for the puzzle container */
+        .puzzle-container {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.5s, transform 0.5s;
+        }
+        
+        .puzzle-container.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Maplewood Lane - Integrated Timeline Puzzle</h1>
+            <p>A working prototype using the PuzzleManager and PuzzleRenderer classes</p>
+        </header>
+        
+        <div class="buttons-container">
+            <button id="showPuzzleBtn" class="control-button">Show Timeline Puzzle</button>
+            <button id="resetBtn" class="control-button">Reset Puzzle</button>
+        </div>
+        
+        <div id="puzzleDisplay" class="puzzle-display"></div>
+        
+        <div class="debug-panel">
+            <h3>Debug Information</h3>
+            <div id="debugInfo" class="debug-info">Puzzle system initialized. Click 'Show Timeline Puzzle' to begin.</div>
+        </div>
+    </div>
+    
+    <script src="PuzzleManager.js"></script>
+    <script src="puzzles.js"></script>
+    <script src="timeline-puzzle.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Debug logger function
+            function log(message) {
+                const debugPanel = document.getElementById('debugInfo');
+                const timestamp = new Date().toLocaleTimeString();
+                debugPanel.innerHTML += `\n[${timestamp}] ${message}`;
+                debugPanel.scrollTop = debugPanel.scrollHeight;
+            }
+            
+            // Create mock game instance (similar to your puzzle-demo.html)
+            const gameInstance = {
+                trust: 50,
+                timeOfDay: "day",
+                foundClues: new Set([
+                    "storm_newspaper", 
+                    "finch_storm_account", 
+                    "arnold_power_outage"
+                ]),
+                trustElement: { textContent: 50 },
+                addClueToNotebook: function(clueId) {
+                    log(`Added new clue: ${clueId}`);
+                },
+                showNotification: function(message) {
+                    log(`Notification: ${message}`);
+                },
+                playSoundEffect: function(sound) {
+                    log(`Sound effect: ${sound}`);
+                }
+            };
+            
+            // Initialize puzzle system
+            const puzzleManager = new PuzzleManager(gameInstance);
+            puzzleManager.initialize(puzzleData);
+            log("PuzzleManager initialized with puzzle data");
+            
+            // Initialize renderer and set the container
+            const puzzleRenderer = new PuzzleRenderer(puzzleManager, gameInstance);
+            
+            // Override the renderer's initialize method to use our display container
+            puzzleRenderer.initialize = function() {
+                this.puzzleContainer = document.getElementById('puzzleDisplay');
+                this.currentPuzzle = null;
+            };
+            
+            puzzleRenderer.initialize();
+            log("PuzzleRenderer initialized");
+            
+            // Initialize the TimelinePuzzleEnhancer
+            const timelineEnhancer = new TimelinePuzzleEnhancer(puzzleRenderer, puzzleManager);
+            log("TimelinePuzzleEnhancer initialized - Timeline puzzles now have enhanced UI");
+            
+            // Register callbacks to track puzzle events
+            puzzleManager.registerCallbacks({
+                onPuzzleActivated: function(puzzleId, puzzle) {
+                    log(`Puzzle activated: ${puzzleId} - ${puzzle.title}`);
+                },
+                onPuzzleSolved: function(puzzleId, puzzle) {
+                    log(`Puzzle solved: ${puzzleId} - ${puzzle.title}`);
+                    if (puzzle.solutionEffects) {
+                        log(`Applied effects: ${JSON.stringify(puzzle.solutionEffects)}`);
+                        
+                        // Apply special animation for rewards
+                        if (puzzle.solutionEffects.unlockClue) {
+                            showRewardAnimation(puzzle.solutionEffects.unlockClue);
+                        }
+                    }
+                }
+            });
+            
+            // Show puzzle button
+            document.getElementById('showPuzzleBtn').addEventListener('click', function() {
+                const timelinePuzzleId = "timeline_storm_night";
+                
+                // Clear the display area first
+                const displayArea = document.getElementById('puzzleDisplay');
+                displayArea.innerHTML = '';
+                
+                // Show the puzzle with animation
+                puzzleRenderer.showPuzzle(timelinePuzzleId);
+                log(`Showing puzzle: ${timelinePuzzleId}`);
+                
+                // Add animation class after a small delay
+                setTimeout(() => {
+                    const puzzleContainer = displayArea.querySelector('.timeline-puzzle');
+                    if (puzzleContainer) {
+                        puzzleContainer.classList.add('visible');
+                    }
+                }, 100);
+                
+                // Ensure the puzzle is activated
+                if (!puzzleManager.activePuzzles.has(timelinePuzzleId)) {
+                    puzzleManager.activatePuzzle(timelinePuzzleId, puzzleData[timelinePuzzleId]);
+                }
+            });
+            
+            // Reset button
+            document.getElementById('resetBtn').addEventListener('click', function() {
+                // Get the puzzle container first
+                const puzzleContainer = document.querySelector('.timeline-puzzle');
+                
+                // Apply fade-out animation first if container exists
+                if (puzzleContainer) {
+                    puzzleContainer.classList.remove('visible');
+                    
+                    // After animation completes, close the puzzle
+                    setTimeout(() => {
+                        puzzleRenderer.closePuzzle();
+                    }, 500);
+                } else {
+                    puzzleRenderer.closePuzzle();
+                }
+                
+                log("Puzzle reset and closed");
+            });
+            
+            // Function to display a reward animation
+            function showRewardAnimation(clueId) {
+                log(`Displaying reward animation for clue: ${clueId}`);
+                
+                // Create reward overlay
+                const rewardOverlay = document.createElement('div');
+                rewardOverlay.className = 'reward-overlay';
+                rewardOverlay.innerHTML = `
+                    <div class="reward-content">
+                        <div class="reward-icon">🔍</div>
+                        <div class="reward-title">New Clue Discovered!</div>
+                        <div class="reward-description">You've unlocked: <span class="clue-name">${clueId}</span></div>
+                    </div>
+                `;
+                
+                // Add styles for the reward animation
+                const style = document.createElement('style');
+                style.textContent = `
+                    .reward-overlay {
+                        position: fixed;
+                        top: 0;
+                        left: 0;
+                        width: 100%;
+                        height: 100%;
+                        background-color: rgba(0, 0, 0, 0.8);
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                        z-index: 1000;
+                        opacity: 0;
+                        transition: opacity 0.5s;
+                    }
+                    
+                    .reward-content {
+                        background-color: #16213e;
+                        border: 2px solid #4cc9f0;
+                        border-radius: 10px;
+                        padding: 30px;
+                        text-align: center;
+                        max-width: 400px;
+                        transform: scale(0.8);
+                        transition: transform 0.5s;
+                        box-shadow: 0 0 30px rgba(76, 201, 240, 0.5);
+                    }
+                    
+                    .reward-overlay.visible .reward-content {
+                        transform: scale(1);
+                    }
+                    
+                    .reward-icon {
+                        font-size: 48px;
+                        margin-bottom: 20px;
+                        animation: pulse 1.5s infinite;
+                    }
+                    
+                    .reward-title {
+                        font-size: 24px;
+                        font-weight: bold;
+                        color: #4cc9f0;
+                        margin-bottom: 15px;
+                    }
+                    
+                    .reward-description {
+                        font-size: 16px;
+                        color: #e6e6e6;
+                    }
+                    
+                    .clue-name {
+                        font-weight: bold;
+                        color: #7bf1a8;
+                    }
+                    
+                    @keyframes pulse {
+                        0% { transform: scale(1); }
+                        50% { transform: scale(1.1); }
+                        100% { transform: scale(1); }
+                    }
+                `;
+                document.head.appendChild(style);
+                
+                // Add to document and animate in
+                document.body.appendChild(rewardOverlay);
+                
+                // Trigger animation
+                setTimeout(() => {
+                    rewardOverlay.style.opacity = '1';
+                    rewardOverlay.classList.add('visible');
+                    
+                    // Auto-remove after delay
+                    setTimeout(() => {
+                        rewardOverlay.style.opacity = '0';
+                        setTimeout(() => {
+                            rewardOverlay.remove();
+                        }, 500);
+                    }, 3000);
+                }, 10);
+            }
+            
+            // Activate the puzzle if needed
+            puzzleManager.checkForActivatablePuzzles();
+            log(`Active puzzles: ${Array.from(puzzleManager.activePuzzles).join(', ') || 'None'}`);
+        });
+    </script>
+</body>
+</html> 

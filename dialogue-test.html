@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maplewood Lane - Dialogue System Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #1a1a2e;
+            color: #e6e6e6;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #16213e;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #4cc9f0;
+            margin-bottom: 30px;
+        }
+        
+        .controls {
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .game-state {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #0f3460;
+            border-radius: 5px;
+        }
+        
+        .state-item {
+            flex: 1;
+            min-width: 120px;
+        }
+        
+        .state-label {
+            font-weight: bold;
+            color: #4cc9f0;
+            margin-bottom: 5px;
+            display: block;
+        }
+        
+        select, button, input {
+            padding: 8px 12px;
+            border-radius: 4px;
+            border: none;
+            background-color: #0f3460;
+            color: #e6e6e6;
+            cursor: pointer;
+        }
+        
+        select:hover, button:hover {
+            background-color: #1a1a2e;
+        }
+        
+        .dialog-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        .dialog-box {
+            width: 600px;
+            background-color: #0f3460;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .dialog-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .character-portrait {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background-color: #16213e;
+            margin-right: 15px;
+            background-size: cover;
+            background-position: center;
+            border: 3px solid #4cc9f0;
+            box-shadow: 0 0 10px rgba(76, 201, 240, 0.5);
+        }
+        
+        .dialog-header h3 {
+            color: #e6e6e6;
+            font-size: 1.3em;
+            margin: 0;
+        }
+        
+        .dialog-content {
+            background-color: #16213e;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            color: #e6e6e6;
+            font-size: 1.1em;
+            line-height: 1.5;
+        }
+        
+        .dialog-options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .dialog-option {
+            background-color: #16213e;
+            padding: 10px 15px;
+            border-radius: 5px;
+            color: #e6e6e6;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            display: flex;
+            align-items: center;
+        }
+        
+        .dialog-option:hover {
+            background-color: #1a1a2e;
+        }
+        
+        .photo-option {
+            background-color: #0f4c75;
+        }
+        
+        .photo-option:hover {
+            background-color: #0c3b5a;
+        }
+        
+        .photo-icon, .clue-icon {
+            margin-right: 8px;
+            font-size: 1.2em;
+        }
+        
+        .dialog-text.mysterious {
+            color: #c77dff;
+            font-style: italic;
+        }
+        
+        .dialog-text.urgent {
+            color: #ff4d6d;
+            font-weight: bold;
+        }
+        
+        .dialog-text.friendly {
+            color: #7bf1a8;
+        }
+        
+        .dialog-text.suspicious {
+            color: #ffbd69;
+        }
+        
+        .trust-feedback {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px 15px;
+            border-radius: 5px;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .trust-gain {
+            color: #7bf1a8;
+        }
+        
+        .trust-loss {
+            color: #ff4d6d;
+        }
+        
+        .clue-notification {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            padding: 10px 15px;
+            border-radius: 5px;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: #ffbd69;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .fade-out {
+            animation: fadeOut 1s ease forwards;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+        
+        .clues-panel {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #0f3460;
+            border-radius: 5px;
+        }
+        
+        .clue-item {
+            background-color: #16213e;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+            color: #ffbd69;
+        }
+        
+        .photo-gallery {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .photo-item {
+            width: 100px;
+            height: 100px;
+            background-color: #16213e;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        
+        .photo-item:hover {
+            background-color: #1a1a2e;
+        }
+        
+        .night-dialog { background-color: rgba(0, 0, 0, 0.85); }
+        .morning-dialog { background-color: rgba(20, 30, 60, 0.75); }
+        .afternoon-dialog { background-color: rgba(10, 20, 50, 0.75); }
+        .evening-dialog { background-color: rgba(5, 15, 40, 0.8); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Maplewood Lane: Dialogue System Test</h1>
+        
+        <div class="game-state">
+            <div class="state-item">
+                <span class="state-label">Time of Day:</span>
+                <select id="timeOfDay">
+                    <option value="morning">Morning</option>
+                    <option value="afternoon">Afternoon</option>
+                    <option value="evening">Evening</option>
+                    <option value="night">Night</option>
+                </select>
+            </div>
+            
+            <div class="state-item">
+                <span class="state-label">Trust Level:</span>
+                <input type="number" id="trustLevel" value="0" min="0" max="100">
+            </div>
+            
+            <div class="state-item">
+                <span class="state-label">Status:</span>
+                <div id="statusDisplay">Ready</div>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <button id="talkToMrsFinch">Talk to Mrs. Finch</button>
+            <button id="talkToJakeLila">Talk to Jake & Lila</button>
+            <button id="talkToMrArnold">Talk to Mr. Arnold</button>
+            <button id="talkToCamille">Talk to Camille</button>
+        </div>
+        
+        <button id="takePhoto">Take Photo (flickerPhoto)</button>
+        
+        <div class="clues-panel">
+            <h3>Discovered Clues</h3>
+            <div id="cluesList"></div>
+        </div>
+        
+        <div class="photo-gallery" id="photoGallery"></div>
+    </div>
+    
+    <!-- Dialog Overlay -->
+    <div id="dialogOverlay" class="dialog-overlay">
+        <div class="dialog-box">
+            <div class="dialog-header">
+                <div id="dialogPortrait" class="character-portrait"></div>
+                <h3 id="dialogCharacterName">Character Name</h3>
+            </div>
+            <div class="dialog-content">
+                <div id="dialogText" class="dialog-text">Dialogue text goes here...</div>
+            </div>
+            <div id="dialogOptions" class="dialog-options">
+                <!-- Options will be added dynamically -->
+            </div>
+            <button id="dialogClose">Close</button>
+        </div>
+    </div>
+    
+    <script src="DialogueManager.js"></script>
+    <script src="dialogues-new.js"></script>
+    <script>
+        // Mock Game state object that simulates our game
+        class GameMock {
+            constructor() {
+                this.trust = 0;
+                this.currentTimeOfDay = 'morning';
+                this.foundClues = new Set();
+                this.photoDetails = [];
+                
+                // DOM elements
+                this.trustElement = document.getElementById('trustLevel');
+                this.dialogOverlay = document.getElementById('dialogOverlay');
+                this.dialogCharacterName = document.getElementById('dialogCharacterName');
+                this.dialogPortrait = document.getElementById('dialogPortrait');
+                this.dialogText = document.getElementById('dialogText');
+                this.dialogOptions = document.getElementById('dialogOptions');
+                this.dialogClose = document.getElementById('dialogClose');
+                
+                // Set up dialogue manager
+                this.setupDialogSystem();
+                
+                // Set up event listeners for UI
+                this.setupEventListeners();
+            }
+            
+            setupDialogSystem() {
+                // Initialize dialogue manager
+                this.dialogueManager = new DialogueManager(this);
+                this.dialogueManager.initialize(
+                    DIALOGUE_DATA,
+                    {
+                        overlay: this.dialogOverlay,
+                        box: document.querySelector('.dialog-box'),
+                        name: this.dialogCharacterName,
+                        portrait: this.dialogPortrait,
+                        text: this.dialogText,
+                        options: this.dialogOptions,
+                        close: this.dialogClose
+                    }
+                );
+            }
+            
+            setupEventListeners() {
+                // Time of day selector
+                document.getElementById('timeOfDay').addEventListener('change', (e) => {
+                    this.currentTimeOfDay = e.target.value;
+                    this.updateStatus();
+                });
+                
+                // Trust level input
+                document.getElementById('trustLevel').addEventListener('change', (e) => {
+                    this.trust = parseInt(e.target.value);
+                    this.updateStatus();
+                });
+                
+                // Character talk buttons
+                document.getElementById('talkToMrsFinch').addEventListener('click', () => {
+                    this.dialogueManager.showDialogue('mrs_finch');
+                });
+                
+                document.getElementById('talkToJakeLila').addEventListener('click', () => {
+                    this.dialogueManager.showDialogue('jake_lila');
+                });
+                
+                document.getElementById('talkToMrArnold').addEventListener('click', () => {
+                    this.dialogueManager.showDialogue('mr_arnold');
+                });
+                
+                document.getElementById('talkToCamille').addEventListener('click', () => {
+                    this.dialogueManager.showDialogue('camille');
+                });
+                
+                // Take photo button
+                document.getElementById('takePhoto').addEventListener('click', () => {
+                    this.takePhoto();
+                });
+                
+                // Dialog close button
+                this.dialogClose.addEventListener('click', () => {
+                    this.dialogOverlay.style.display = 'none';
+                });
+            }
+            
+            updateStatus() {
+                document.getElementById('statusDisplay').textContent = 
+                    `Time: ${this.currentTimeOfDay} | Trust: ${this.trust} | Clues: ${this.foundClues.size}`;
+            }
+            
+            takePhoto() {
+                // Simulate taking a photo based on time of day
+                const photo = {
+                    id: this.photoDetails.length + 1,
+                    timeOfDay: this.currentTimeOfDay,
+                    position: { x: 100, y: 100 },
+                    nearbyElements: [
+                        { type: 'house', index: 0 } // Always the flickering light house for simplicity
+                    ]
+                };
+                
+                this.photoDetails.push(photo);
+                
+                // Add to gallery
+                this.addPhotoToGallery(photo);
+                
+                // Update status
+                this.updateStatus();
+            }
+            
+            addPhotoToGallery(photo) {
+                const gallery = document.getElementById('photoGallery');
+                const photoItem = document.createElement('div');
+                photoItem.className = 'photo-item';
+                photoItem.textContent = `Photo ${photo.id}: ${photo.timeOfDay}`;
+                photoItem.title = 'Flickering light house photo';
+                
+                gallery.appendChild(photoItem);
+            }
+            
+            addClueToNotebook(clue) {
+                const cluesList = document.getElementById('cluesList');
+                const clueItem = document.createElement('div');
+                clueItem.className = 'clue-item';
+                clueItem.textContent = clue;
+                
+                cluesList.appendChild(clueItem);
+            }
+            
+            playSoundEffect(sound) {
+                console.log(`Playing sound: ${sound}`);
+            }
+        }
+        
+        // Initialize the demo
+        const game = new GameMock();
+    </script>
+</body>
+</html> 

@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Quiet Hollow: The Vanishing of Iris Bell - An interactive narrative exploration game">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="theme-color" content="#1a1a2e">
+    
+    <!-- Performance optimizations -->
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link rel="dns-prefetch" href="https://fonts.gstatic.com">
+    <meta name="format-detection" content="telephone=no">
+    
+    <title>Quiet Hollow: The Vanishing of Iris Bell</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="puzzles.css">
+    
+    <!-- Preload critical resources -->
+    <link rel="preload" href="game.js" as="script">
+    <link rel="preload" href="dialogues.js" as="script">
+    <link rel="preload" href="styles.css" as="style">
+</head>
+<body>
+    <div class="game-container">
+        <div class="game-header">
+            <h1>Quiet Hollow</h1>
+            <div class="game-stats">
+                <div class="time-container">
+                    <span>Time: </span>
+                    <span id="time">6:00 AM</span>
+                </div>
+                <div class="trust-container">
+                    <span>Trust Level: </span>
+                    <span id="trust">0</span>
+                </div>
+            </div>
+        </div>
+        <div class="game-content">
+            <div class="game-board" id="gameBoard">
+                <!-- Game elements will be added here dynamically -->
+            </div>
+            <div class="minimap-container">
+                <div class="minimap" id="minimap">
+                    <!-- Minimap elements will be added here dynamically -->
+                </div>
+                <div class="map-legend">
+                    <h4>Map Legend</h4>
+                    <div class="legend-item">
+                        <div class="legend-icon player-icon"></div>
+                        <span>You</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-icon house-icon"></div>
+                        <span>Houses</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-icon neighbor-icon"></div>
+                        <span>Neighbors</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-icon item-icon"></div>
+                        <span>Clues</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-icon" style="background-color: rgba(155, 89, 182, 0.7);"></div>
+                        <span>Investigation</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Dialog System -->
+        <div class="dialog-overlay" id="dialogOverlay">
+            <div class="dialog-box">
+                <div class="dialog-header">
+                    <div class="character-portrait" id="dialogPortrait"></div>
+                    <h3 id="dialogCharacterName">Character Name</h3>
+                </div>
+                <div class="dialog-content">
+                    <p id="dialogText">Dialog text will appear here...</p>
+                </div>
+                <div class="dialog-options" id="dialogOptions">
+                    <!-- Dialog options will be added dynamically -->
+                </div>
+                <button id="dialogClose">Close</button>
+            </div>
+        </div>
+        
+        <!-- Puzzle Container (Will be controlled by PuzzleRenderer) -->
+        <div class="puzzle-container" id="puzzleContainer" style="display: none;">
+            <!-- Puzzle UI will be injected here dynamically -->
+        </div>
+        
+        <div class="game-ui">
+            <div class="notebook-container">
+                <div class="notebook" id="notebook">
+                    <h3>Elia's Journal</h3>
+                    <div class="notebook-tabs">
+                        <button class="tab active" data-tab="clues">Clues</button>
+                        <button class="tab" data-tab="photos">Photos</button>
+                        <button class="tab" data-tab="notes">Notes</button>
+                        <button class="tab" data-tab="map">Map</button>
+                        <button class="tab" data-tab="puzzlesTab">Puzzles <span class="counter"></span></button>
+                    </div>
+                    <div class="notebook-content">
+                        <div class="tab-content active" id="cluesTab">
+                            <ul id="cluesList"></ul>
+                        </div>
+                        <div class="tab-content" id="photosTab">
+                            <div id="photosGrid"></div>
+                        </div>
+                        <div class="tab-content" id="notesTab">
+                            <textarea id="notesArea" placeholder="Write your observations here..."></textarea>
+                        </div>
+                        <div class="tab-content" id="mapTab">
+                            <div class="map-controls">
+                                <button class="map-control" id="zoomIn">+</button>
+                                <button class="map-control" id="zoomOut">-</button>
+                                <button class="map-control" id="resetZoom">Reset</button>
+                            </div>
+                            <div class="full-map" id="fullMap">
+                                <div class="location-labels">
+                                    <div class="location-label" data-house="0">Mrs. Finch's House</div>
+                                    <div class="location-label" data-house="1">Jake & Lila's House</div>
+                                    <div class="location-label" data-house="2">Mr. Arnold's House</div>
+                                    <div class="location-label" data-house="3">Iris Bell's House</div>
+                                    <div class="location-label" data-area="park">Quiet Hollow Park</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="tab-content" id="puzzlesTab">
+                            <h2>Puzzles</h2>
+                            <div class="notebook-subtitle">Mysteries to solve in Quiet Hollow</div>
+                            <div class="notebook-puzzles-list">
+                                <!-- Puzzle entries will be added here dynamically -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="controls">
+                <div class="character-info">
+                    <h3>Elia Martinez</h3>
+                    <p>26 years old • Photographer • Iris's Cousin</p>
+                </div>
+                <button id="startGame">Start Game</button>
+                <button id="takePhoto" disabled>Take Photo</button>
+                <div class="instructions">
+                    <h3>The Vanishing of Iris Bell:</h3>
+                    <p>Explore Quiet Hollow and discover what happened to your cousin Iris:</p>
+                    <p>• Use arrow keys to move</p>
+                    <p>• Talk to neighbors to build trust</p>
+                    <p>• Take photos of evidence</p>
+                    <p>• Document clues in your journal</p>
+                    <p>• Explore during different times of day</p>
+                    <p>• Investigate suspicious locations</p>
+                    <p>• Solve puzzles to uncover the truth</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Audio Controller (Hidden) -->
+    <div class="audio-container" style="display:none;">
+        <audio id="bgMusic" loop>
+            <source src="" type="audio/mpeg">
+        </audio>
+        <audio id="soundEffect">
+            <source src="" type="audio/mpeg">
+        </audio>
+    </div>
+
+    <!-- Game Scripts -->
+    <script src="dialogues.js"></script>
+    <script src="PuzzleManager.js"></script>
+    <script src="puzzles.js"></script>
+    <script>
+        // Expose puzzle modules globally for the game.js to access
+        window.puzzleModules = {
+            puzzleData: puzzleData,
+            PuzzleRenderer: PuzzleRenderer
+        };
+    </script>
+    <script src="game.js"></script>
+    
+    <!-- Deferred scripts to improve initial load time -->
+    <script>
+        // Check for performance API support
+        if (window.performance && window.performance.mark) {
+            window.performance.mark('app-loaded');
+            
+            window.addEventListener('load', () => {
+                window.performance.mark('app-ready');
+                window.performance.measure('total-load-time', 'app-loaded', 'app-ready');
+                
+                const measure = window.performance.getEntriesByName('total-load-time')[0];
+                console.log(`App loaded in ${Math.round(measure.duration)}ms`);
+            });
+        }
+        
+        // Simple error tracking
+        window.addEventListener('error', function(event) {
+            console.error('Game error:', event.error);
+        });
+    </script>
+</body>
+</html> 
