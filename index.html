@@ -13,13 +13,13 @@
     <meta name="format-detection" content="telephone=no">
     
     <title>Quiet Hollow: The Vanishing of Iris Bell</title>
-    <link rel="stylesheet" href="styles.css">
-    <link rel="stylesheet" href="puzzles.css">
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/puzzles.css">
     
     <!-- Preload critical resources -->
-    <link rel="preload" href="game.js" as="script">
-    <link rel="preload" href="dialogues.js" as="script">
-    <link rel="preload" href="styles.css" as="style">
+    <link rel="preload" href="js/game.js" as="script">
+    <link rel="preload" href="js/dialogues.js" as="script">
+    <link rel="preload" href="css/styles.css" as="style">
 </head>
 <body>
     <div class="game-container">
@@ -119,6 +119,11 @@
                                 <button class="map-control" id="zoomOut">-</button>
                                 <button class="map-control" id="resetZoom">Reset</button>
                             </div>
+                            <div class="map-mode-switch">
+                                <div class="map-mode-option active" data-mode="normal">Normal</div>
+                                <div class="map-mode-option" data-mode="clues">Clues</div>
+                            </div>
+                            <div class="time-indicator" id="mapTimeIndicator">Morning</div>
                             <div class="full-map" id="fullMap">
                                 <div class="location-labels">
                                     <div class="location-label" data-house="0">Mrs. Finch's House</div>
@@ -172,9 +177,10 @@
     </div>
 
     <!-- Game Scripts -->
-    <script src="dialogues.js"></script>
-    <script src="PuzzleManager.js"></script>
-    <script src="puzzles.js"></script>
+    <script src="js/dialogues.js"></script>
+    <script src="js/MapManager.js"></script>
+    <script src="js/PuzzleManager.js"></script>
+    <script src="js/puzzles.js"></script>
     <script>
         // Expose puzzle modules globally for the game.js to access
         window.puzzleModules = {
@@ -182,7 +188,7 @@
             PuzzleRenderer: PuzzleRenderer
         };
     </script>
-    <script src="game.js"></script>
+    <script src="js/game.js"></script>
     
     <!-- Deferred scripts to improve initial load time -->
     <script>

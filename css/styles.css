@@ -2048,4 +2048,187 @@ button:disabled {
     display: flex;
     justify-content: center;
     margin: 20px 0;
+}
+
+/* Game notification styling */
+.game-notification {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-100px);
+    background-color: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    z-index: 1000;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+    opacity: 0;
+    white-space: nowrap;
+    border-left: 3px solid #4cc9f0;
+}
+
+.game-notification.show {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+}
+
+/* Fast Travel Modal */
+.fast-travel-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    z-index: 1000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+.fast-travel-modal.open {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.fast-travel-content {
+    width: 90%;
+    max-width: 500px;
+    background-color: #16213e;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
+    transform: translateY(20px);
+    transition: transform 0.3s ease;
+}
+
+.fast-travel-modal.open .fast-travel-content {
+    transform: translateY(0);
+}
+
+.fast-travel-header {
+    background-color: #0f3460;
+    padding: 15px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.fast-travel-header h2 {
+    margin: 0;
+    color: #4cc9f0;
+    font-size: 18px;
+}
+
+.fast-travel-close {
+    background: none;
+    border: none;
+    color: #e6e6e6;
+    font-size: 20px;
+    cursor: pointer;
+}
+
+.fast-travel-body {
+    padding: 20px;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.fast-travel-body p {
+    color: #a0a0a0;
+    margin-top: 0;
+}
+
+.fast-travel-locations {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.fast-travel-location {
+    padding: 12px 15px;
+    background-color: rgba(15, 52, 96, 0.6);
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    display: flex;
+    align-items: center;
+}
+
+.fast-travel-location:hover {
+    background-color: rgba(76, 201, 240, 0.2);
+}
+
+.fast-travel-icon {
+    width: 16px;
+    height: 16px;
+    margin-right: 10px;
+    background-color: #4cc9f0;
+    border-radius: 2px;
+}
+
+.fast-travel-location.house .fast-travel-icon {
+    clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+}
+
+.fast-travel-location.park .fast-travel-icon {
+    background-color: #2ecc71;
+    border-radius: 2px;
+}
+
+.fast-travel-location.disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.fast-travel-footer {
+    padding: 15px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid rgba(76, 201, 240, 0.2);
+}
+
+.fast-travel-time {
+    color: #a0a0a0;
+}
+
+.fast-travel-controls {
+    display: flex;
+    gap: 10px;
+}
+
+.fast-travel-button {
+    padding: 8px 15px;
+    background-color: #4cc9f0;
+    color: #0f3460;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.fast-travel-button:hover {
+    background-color: #66d4ff;
+}
+
+.fast-travel-button.cancel {
+    background-color: rgba(76, 201, 240, 0.2);
+    color: #e6e6e6;
+}
+
+/* Map focused marker animation */
+.map-marker.focused .marker-icon {
+    animation: focusPulse 1s infinite alternate;
+}
+
+@keyframes focusPulse {
+    0% { transform: scale(1); box-shadow: 0 0 5px rgba(76, 201, 240, 0.5); }
+    100% { transform: scale(1.3); box-shadow: 0 0 15px rgba(76, 201, 240, 0.8); }
 } 

@@ -1,0 +1,398 @@
+{
+  "characters": {
+    "mrs_finch": {
+      "id": "mrs_finch",
+      "name": "Mrs. Finch",
+      "archetype": "Nosy Elder",
+      "hiddenLayer": "She's protecting someone involved",
+      "traits": ["nosy", "protective", "secretive", "anxious"],
+      "trustThresholds": [0, 25, 50, 75],
+      "portrait": "assets/characters/mrs_finch.png"
+    },
+    "jake": {
+      "id": "jake",
+      "name": "Jake",
+      "archetype": "Guilty Teen",
+      "hiddenLayer": "He saw something he wasn't supposed to",
+      "traits": ["secretive", "anxious", "protective"],
+      "trustThresholds": [0, 25, 50, 75],
+      "portrait": "assets/characters/jake.png"
+    },
+    "camille": {
+      "id": "camille",
+      "name": "Camille",
+      "archetype": "Gifted Child",
+      "hiddenLayer": "Has intuition others dismiss as fantasy",
+      "traits": ["perceptive", "honest", "superstitious"],
+      "trustThresholds": [0, 25, 50, 75],
+      "portrait": "assets/characters/camille.png"
+    },
+    "mr_arnold": {
+      "id": "mr_arnold",
+      "name": "Mr. Arnold",
+      "archetype": "Distant Recluse",
+      "hiddenLayer": "He's trying to forget what he did",
+      "traits": ["secretive", "anxious", "defensive"],
+      "trustThresholds": [0, 25, 50, 75],
+      "portrait": "assets/characters/mr_arnold.png"
+    },
+    "lila": {
+      "id": "lila",
+      "name": "Lila",
+      "archetype": "Loyal Friend",
+      "hiddenLayer": "Torn between helping and staying silent",
+      "traits": ["protective", "conflicted", "observant"],
+      "trustThresholds": [0, 25, 50, 75],
+      "portrait": "assets/characters/lila.png"
+    }
+  },
+  "dialogues": {
+    "mrs_finch_intro": {
+      "id": "mrs_finch_intro",
+      "character": "mrs_finch",
+      "text": [
+        "Oh, hello dear. You must be new here. Looking into poor Iris's disappearance? Such a shame what happened.",
+        "Hello there. You're investigating Iris's disappearance, aren't you? I've been keeping an eye on the neighborhood lately.",
+        "I've been waiting for someone to take this case more seriously. Iris was a good girl, and I've noticed some... strange things lately.",
+        "Thank goodness someone is finally taking this seriously. I've been watching the neighborhood, and I think there's more to Iris's disappearance than most realize."
+      ],
+      "choices": [
+        {
+          "id": "ask_about_iris",
+          "text": "What do you know about Iris?",
+          "effects": {
+            "trustChange": 5
+          },
+          "nextDialogue": "mrs_finch_about_iris"
+        },
+        {
+          "id": "ask_about_neighborhood",
+          "text": "You seem to know a lot about everyone here.",
+          "nextDialogue": "mrs_finch_neighborhood"
+        },
+        {
+          "id": "ask_about_night",
+          "text": "Did you see anything suspicious the night she vanished?",
+          "conditions": {
+            "trustMin": 25
+          },
+          "nextDialogue": "mrs_finch_night_observed"
+        },
+        {
+          "id": "ask_about_night_low_trust",
+          "text": "Did you see anything suspicious the night she vanished?",
+          "conditions": {
+            "trustMax": 24
+          },
+          "effects": {
+            "trustChange": -5
+          },
+          "nextDialogue": "mrs_finch_defensive"
+        }
+      ],
+      "priority": 10,
+      "isFallback": true
+    },
+    "mrs_finch_about_iris": {
+      "id": "mrs_finch_about_iris",
+      "character": "mrs_finch",
+      "conditions": {
+        "previousDialogue": "mrs_finch_intro"
+      },
+      "text": [
+        "Iris? Such a sweet girl. Always helping with neighborhood events. Had a curious nature though, maybe too curious for her own good.",
+        "Iris was a lovely girl. Very inquisitive, always asking questions about the neighborhood history. She was especially curious about the old storm and the power outage.",
+        "Iris was special. She was investigating something before she disappeared. I noticed her taking photos at night around Mr. Arnold's house. I was concerned.",
+        "I worry that Iris got too close to something dangerous. She confided in me that she'd seen strange lights in the basement of Arnold's house the night of the big storm."
+      ],
+      "choices": [
+        {
+          "id": "ask_about_curious",
+          "text": "What do you mean by 'too curious'?",
+          "nextDialogue": "mrs_finch_iris_curious"
+        },
+        {
+          "id": "ask_about_enemies",
+          "text": "Did she have enemies in the neighborhood?",
+          "conditions": {
+            "requiredTrait": "protective"
+          },
+          "effects": {
+            "trustChange": 5
+          },
+          "nextDialogue": "mrs_finch_iris_friends"
+        },
+        {
+          "id": "back_to_intro",
+          "text": "Let's talk about something else.",
+          "nextDialogue": "mrs_finch_intro"
+        }
+      ]
+    },
+    "mrs_finch_night_confession": {
+      "id": "mrs_finch_night_confession",
+      "character": "mrs_finch",
+      "conditions": {
+        "trustMin": 75,
+        "timeOfDay": "night",
+        "requiredClues": ["finch_window_photo"]
+      },
+      "text": "I... I didn't want to tell anyone this. That night, I saw someone from my window. A figure near Arnold's house, carrying something. I think... I think it was Jake.",
+      "choices": [
+        {
+          "id": "ask_if_certain",
+          "text": "Are you certain it was Jake?",
+          "effects": {
+            "unlockClue": "finch_jake_sighting"
+          },
+          "nextDialogue": "mrs_finch_uncertain_id"
+        },
+        {
+          "id": "ask_why_silent",
+          "text": "Why didn't you tell the police?",
+          "effects": {
+            "trustChange": -10
+          },
+          "nextDialogue": "mrs_finch_protective_explanation"
+        }
+      ],
+      "priority": 100
+    },
+    "jake_intro": {
+      "id": "jake_intro",
+      "character": "jake",
+      "text": [
+        "Why do you care? She's gone. People move on. Just leave it alone.",
+        "Sorry about before. It's just... everyone's been asking about Iris. Gets old, you know?",
+        "We were close, okay? I just... don't want to talk about it here. Too many people watching.",
+        "She didn't run. Someone scared her. Maybe it was me. I don't know anymore."
+      ],
+      "choices": [
+        {
+          "id": "ask_about_relationship",
+          "text": "What was your relationship with Iris?",
+          "nextDialogue": "jake_relationship"
+        },
+        {
+          "id": "ask_about_night",
+          "text": "Where were you the night she disappeared?",
+          "effects": {
+            "trustChange": -5
+          },
+          "nextDialogue": "jake_defensive"
+        },
+        {
+          "id": "show_photo",
+          "text": "I found this photo near the park.",
+          "conditions": {
+            "requiredClues": ["park_bench_photo"]
+          },
+          "effects": {
+            "trustChange": 10,
+            "showEvidence": "park_bench_photo"
+          },
+          "nextDialogue": "jake_photo_reaction"
+        }
+      ],
+      "priority": 10,
+      "isFallback": true
+    },
+    "jake_photo_reaction": {
+      "id": "jake_photo_reaction",
+      "character": "jake",
+      "conditions": {
+        "shownEvidence": "park_bench_photo"
+      },
+      "text": [
+        "That's... where we used to meet. So what?",
+        "That's our spot. We'd meet there to talk without everyone gossiping. What else did you find there?",
+        "The park bench. Iris left something there for me the night she disappeared. I never got to see what it was.",
+        "She left a note there for me. Said she had proof of something big. But when I got there, the note was gone, and so was she."
+      ],
+      "choices": [
+        {
+          "id": "ask_about_proof",
+          "text": "Proof of what?",
+          "nextDialogue": "jake_about_proof"
+        },
+        {
+          "id": "ask_about_others",
+          "text": "Did anyone else know about this spot?",
+          "nextDialogue": "jake_about_others"
+        }
+      ]
+    },
+    "mr_arnold_intro": {
+      "id": "mr_arnold_intro",
+      "character": "mr_arnold",
+      "text": [
+        "I keep to myself. Haven't seen anything strange. That all?",
+        "I don't have much to say. Iris was a pleasant girl. Polite. Can't imagine why anyone would want to hurt her.",
+        "Look, I've been questioned enough by the police. But I suppose I can tell you what I know, for Iris's sake.",
+        "I think it's time someone knew the truth. I've been holding onto this for too long."
+      ],
+      "choices": [
+        {
+          "id": "ask_about_basement",
+          "text": "Do you spend a lot of time in your basement?",
+          "nextDialogue": "mr_arnold_basement_denial"
+        },
+        {
+          "id": "ask_about_flicker",
+          "text": "Have you noticed the lights flickering recently?",
+          "conditions": {
+            "requiredClues": ["basement_light"]
+          },
+          "nextDialogue": "mr_arnold_flicker_response"
+        },
+        {
+          "id": "say_goodbye",
+          "text": "That's all for now, thank you.",
+          "nextDialogue": "mr_arnold_goodbye"
+        }
+      ]
+    },
+    "mr_arnold_flicker_response": {
+      "id": "mr_arnold_flicker_response",
+      "character": "mr_arnold",
+      "conditions": {
+        "trustMin": 25,
+        "requiredClues": ["basement_light"]
+      },
+      "text": [
+        "...That light again. Same night Iris vanished, yeah?",
+        "That old wiring. The storm damaged a lot of things. Why are you asking about this?",
+        "The lights... they weren't from faulty wiring. There was someone in my basement that night. While I was out.",
+        "I need to show you something in the garden. I buried it the night after Iris vanished. I was afraid."
+      ],
+      "choices": [
+        {
+          "id": "accusatory",
+          "text": "What were you doing outside then?",
+          "effects": {
+            "trustChange": -5
+          },
+          "nextDialogue": "mr_arnold_clams_up"
+        },
+        {
+          "id": "curious",
+          "text": "You think someone was watching her?",
+          "effects": {
+            "trustChange": 5,
+            "unlockClue": "backyard_path"
+          },
+          "nextDialogue": "mr_arnold_intruder_theory"
+        }
+      ]
+    },
+    "mr_arnold_garden_confession": {
+      "id": "mr_arnold_garden_confession",
+      "character": "mr_arnold",
+      "conditions": {
+        "trustMin": 75,
+        "timeOfDay": "night"
+      },
+      "text": "You won't believe this — but I buried something back there. It's still in the garden. Take a photo. Then I'll talk.",
+      "choices": [
+        {
+          "id": "agree_to_photo",
+          "text": "I'll take a photo of your garden now.",
+          "effects": {
+            "triggerEvent": "enable_garden_photo"
+          },
+          "nextDialogue": "mr_arnold_waiting"
+        },
+        {
+          "id": "ask_what",
+          "text": "What exactly am I looking for?",
+          "nextDialogue": "mr_arnold_hints"
+        }
+      ]
+    },
+    "camille_intro": {
+      "id": "camille_intro",
+      "character": "camille",
+      "text": [
+        "I draw what I see. Mommy says I have a big imagination.",
+        "I know Iris. She was nice to me. She liked my drawings of the shadow people.",
+        "The shadow people didn't like that Iris could see them too. That's why they took her.",
+        "I can show you where they took her. I've been drawing maps. The grown-ups don't believe me."
+      ],
+      "choices": [
+        {
+          "id": "ask_about_drawings",
+          "text": "Can you show me your drawings?",
+          "effects": {
+            "trustChange": 10
+          },
+          "nextDialogue": "camille_drawings"
+        },
+        {
+          "id": "ask_about_shadow",
+          "text": "Tell me about these shadow people.",
+          "nextDialogue": "camille_shadow_people"
+        },
+        {
+          "id": "ask_about_iris",
+          "text": "When did you last see Iris?",
+          "nextDialogue": "camille_last_saw_iris"
+        }
+      ]
+    },
+    "camille_drawings": {
+      "id": "camille_drawings",
+      "character": "camille",
+      "text": [
+        "These are just my normal drawings. Mommy took the special ones away.",
+        "Here's one I made. See the shadows by Mr. Arnold's house? They only come at night.",
+        "This is my map. The X is where I saw the shadow person take something from Iris. It was small and glowing.",
+        "I made this map of all the places the shadow people hide. The biggest one lives under Mr. Arnold's house. He has a door made of light."
+      ],
+      "choices": [
+        {
+          "id": "ask_about_map",
+          "text": "Can I take a photo of this map?",
+          "effects": {
+            "unlockClue": "camille_shadow_map"
+          },
+          "nextDialogue": "camille_gives_map"
+        },
+        {
+          "id": "ask_about_glowing",
+          "text": "What was the glowing thing?",
+          "nextDialogue": "camille_describes_device"
+        }
+      ]
+    },
+    "lila_intro": {
+      "id": "lila_intro",
+      "character": "lila",
+      "text": [
+        "Iris? We weren't that close. I barely knew her, honestly.",
+        "Iris and I shared some classes. She was smart, ambitious. I miss her.",
+        "Iris was my friend. We... we had an argument the day before she disappeared. I've felt guilty ever since.",
+        "I know why Iris disappeared. She found something on Jake's phone, and confronted him about it. I was there."
+      ],
+      "choices": [
+        {
+          "id": "ask_about_argument",
+          "text": "What was your argument about?",
+          "conditions": {
+            "trustMin": 50
+          },
+          "nextDialogue": "lila_argument"
+        },
+        {
+          "id": "ask_about_jake",
+          "text": "Do you think Jake had something to do with it?",
+          "nextDialogue": "lila_about_jake"
+        },
+        {
+          "id": "ask_last_saw",
+          "text": "When did you last see her?",
+          "nextDialogue": "lila_last_saw"
+        }
+      ]
+    }
+  }
+} 

@@ -710,77 +710,7 @@
         </div>
     </div>
     
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Trust slider functionality
-            const trustSlider = document.getElementById('trustSlider');
-            const trustValue = document.getElementById('trustValue');
-            
-            trustSlider.addEventListener('input', function() {
-                trustValue.textContent = this.value;
-                updateDialoguePreview();
-            });
-            
-            // Character selection
-            const characterItems = document.querySelectorAll('.character-item');
-            characterItems.forEach(item => {
-                item.addEventListener('click', function() {
-                    // Remove active class from all items
-                    characterItems.forEach(i => i.classList.remove('active'));
-                    // Add active class to clicked item
-                    this.classList.add('active');
-                    
-                    // Update character data
-                    const characterId = this.getAttribute('data-character');
-                    loadCharacterData(characterId);
-                });
-            });
-            
-            // Time of day toggle
-            const timeOptions = document.querySelectorAll('.time-option');
-            timeOptions.forEach(option => {
-                option.addEventListener('click', function() {
-                    timeOptions.forEach(o => o.classList.remove('active'));
-                    this.classList.add('active');
-                    updateDialoguePreview();
-                });
-            });
-            
-            // Example dialogue choices
-            const previewChoices = document.querySelectorAll('.preview-choice');
-            previewChoices.forEach(choice => {
-                choice.addEventListener('click', function() {
-                    // In a real implementation, this would advance the dialogue
-                    this.style.backgroundColor = 'rgba(76, 201, 240, 0.3)';
-                    setTimeout(() => {
-                        this.style.backgroundColor = '';
-                    }, 300);
-                });
-            });
-            
-            // Placeholder function for character data loading
-            function loadCharacterData(characterId) {
-                console.log('Loading character data for:', characterId);
-                // In a real implementation, this would load data from a store
-                document.querySelector('.personality-section h2').textContent = 'Personality: ' + 
-                    characterId.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
-                
-                updateDialoguePreview();
-            }
-            
-            // Placeholder function for dialogue preview updates
-            function updateDialoguePreview() {
-                const trustLevel = trustSlider.value;
-                const timeOfDay = document.querySelector('.time-option.active').getAttribute('data-time');
-                const characterId = document.querySelector('.character-item.active').getAttribute('data-character');
-                
-                console.log('Updating preview:', { character: characterId, trust: trustLevel, time: timeOfDay });
-                // In a real implementation, this would update the preview based on conditions
-            }
-            
-            // Initialize the editor
-            loadCharacterData('mrs_finch');
-        });
-    </script>
+    <script src="../js/neighbor-dialogue-system.js"></script>
+    <script src="../js/neighbor-dialogue-editor.js"></script>
 </body>
 </html> 

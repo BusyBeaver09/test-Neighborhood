@@ -14,6 +14,9 @@ function throttle(callback, limit) {
     };
 }
 
+// At the start of the file, after the throttle function
+const WEATHER_EFFECTS = ['clear', 'fog', 'rain', 'storm'];
+
 class Game {
     constructor() {
         this.gameBoard = document.getElementById('gameBoard');
@@ -134,35 +137,15 @@ class Game {
         
         this.foundClues = new Set();
         this.timeOfDay = "morning"; // Change from currentTimeOfDay to timeOfDay for consistency
-        this.minimap = document.getElementById('minimap');
-        this.fullMap = document.getElementById('fullMap');
-        this.mapScale = 0.2; // Scale for minimap
-        this.mapElements = {
-            player: null,
-            houses: [],
-            neighbors: [],
-            items: []
-        };
-        this.mapZoom = 1;
-        this.maxZoom = 2;
-        this.minZoom = 0.5;
-        this.zoomStep = 0.25;
-        
-        // Dialog system elements
-        this.dialogOverlay = document.getElementById('dialogOverlay');
-        this.dialogCharacterName = document.getElementById('dialogCharacterName');
-        this.dialogPortrait = document.getElementById('dialogPortrait');
-        this.dialogText = document.getElementById('dialogText');
-        this.dialogOptions = document.getElementById('dialogOptions');
-        this.dialogClose = document.getElementById('dialogClose');
-        this.currentDialog = null;
-        this.currentCharacter = null;
         
         // Initialize DialogueManager
         this.dialogueManager = new DialogueManager(this);
 
         // Initialize PuzzleManager
         this.puzzleManager = null; // Will be initialized after loading puzzle data
+        
+        // Initialize MapManager
+        this.mapManager = new MapManager(this);
         
         // Audio elements
         this.bgMusic = document.getElementById('bgMusic');
@@ -175,26 +158,8 @@ class Game {
         this.setupEventListeners();
         this.setupDialogSystem();
         this.setupAudioControls();
-        this.setupPuzzleSystem(); // Add method to set up the puzzle system
-
-        // Add map control event listeners
-        document.getElementById('zoomIn').addEventListener('click', () => this.zoomMap('in'));
-        document.getElementById('zoomOut').addEventListener('click', () => this.zoomMap('out'));
-        document.getElementById('resetZoom').addEventListener('click', () => this.resetMapZoom());
-
-        // Add location label click handlers
-        document.querySelectorAll('.location-label').forEach(label => {
-            label.addEventListener('click', (e) => {
-                const houseIndex = e.target.getAttribute('data-house');
-                const area = e.target.getAttribute('data-area');
-                if (houseIndex !== null) {
-                    this.focusOnLocation('house', parseInt(houseIndex));
-                } else if (area === 'park') {
-                    this.focusOnLocation('area', area);
-                }
-            });
-        });
-
+        this.setupPuzzleSystem();
+        
         this.clueConnections = new Map(); // Track connections between clues
         this.savedGames = []; // For save/load functionality
 
@@ -281,6 +246,38 @@ class Game {
                 clue: "A neighbor's note: 'If she's back, we'll all pay.'"
             }
         ];
+
+        // Initialize random events
+        this.randomEvents = [
+            {
+                id: 'fireflies',
+                probability: 0.1, // 10% chance
+                timeOfDay: ['evening', 'night'],
+                action: () => this.createRandomAmbientEffect('firefly', 5)
+            },
+            {
+                id: 'cat',
+                probability: 0.05, // 5% chance
+                timeOfDay: ['morning', 'afternoon', 'evening'],
+                action: () => this.createCat()
+            },
+            {
+                id: 'light_flicker',
+                probability: 0.15, // 15% chance
+                timeOfDay: ['night'],
+                location: { near: 'house', distance: 150 },
+                action: () => this.flickerNearbyLight()
+            },
+            {
+                id: 'strange_sound',
+                probability: 0.1, // 10% chance
+                timeOfDay: ['night'],
+                action: () => this.playRandomAmbientSound()
+            }
+        ];
+        
+        this.lastRandomEvent = 0; // Time tracker for random events
+        this.randomEventCooldown = 60000; // 1 minute cooldown between random events
     }
     
     // New method to set up the puzzle system
@@ -674,6 +671,15 @@ class Game {
         this.startTimeLoop();
         this.updateTimeOfDay();
         this.playBackgroundMusic();
+        
+        // Load the map-enhancements.css file if not already loaded
+        if (!document.getElementById('map-enhancements-css')) {
+            const mapCssLink = document.createElement('link');
+            mapCssLink.id = 'map-enhancements-css';
+            mapCssLink.rel = 'stylesheet';
+            mapCssLink.href = 'map-enhancements.css';
+            document.head.appendChild(mapCssLink);
+        }
     }
 
     resetGame() {
@@ -810,7 +816,7 @@ class Game {
     }
 
     updateMap() {
-        this.throttledUpdateMap();
+        this.mapManager.update();
     }
 
     checkCollisions() {
@@ -1622,46 +1628,153 @@ class Game {
     }
 
     zoomMap(direction) {
-        if (direction === 'in' && this.mapZoom < this.maxZoom) {
-            this.mapZoom += this.zoomStep;
-        } else if (direction === 'out' && this.mapZoom > this.minZoom) {
-            this.mapZoom -= this.zoomStep;
-        }
-        
-        this.fullMap.style.transform = `scale(${this.mapZoom})`;
-        this.fullMap.classList.toggle('zoomed', this.mapZoom > 1);
+        this.mapManager.zoomMap(direction);
     }
 
     resetMapZoom() {
-        this.mapZoom = 1;
-        this.fullMap.style.transform = 'scale(1)';
-        this.fullMap.classList.remove('zoomed');
+        this.mapManager.resetMapZoom();
     }
 
-    focusOnLocation(type, identifier) {
-        let targetElement;
-        if (type === 'house') {
-            targetElement = this.houses[identifier];
-        } else if (type === 'area' && identifier === 'park') {
-            // Center on the park area
-            this.fullMap.scrollTo({
-                left: 400 - this.fullMap.clientWidth / 2,
-                top: 300 - this.fullMap.clientHeight / 2,
-                behavior: 'smooth'
-            });
-            return;
-        }
-
-        if (targetElement) {
-            const rect = targetElement.getBoundingClientRect();
-            const mapRect = this.fullMap.getBoundingClientRect();
+    focusOnLocation(type, coordinates) {
+        const mapTab = document.getElementById('mapTab');
+        const notebookTabs = document.querySelectorAll('.tab');
+        
+        // Switch to map tab if not active
+        if (!mapTab.classList.contains('active')) {
+            notebookTabs.forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
             
-            this.fullMap.scrollTo({
-                left: rect.left - mapRect.left - this.fullMap.clientWidth / 2,
-                top: rect.top - mapRect.top - this.fullMap.clientHeight / 2,
+            const mapTabBtn = document.querySelector('.tab[data-tab="map"]');
+            mapTabBtn.classList.add('active');
+            mapTab.classList.add('active');
+        }
+        
+        // Handle focus based on type
+        if (type === 'location') {
+            const location = this.mapManager.mapLocations.find(loc => loc.id === coordinates);
+            if (location) {
+                // Center map on this location
+                const fullMap = document.getElementById('fullMap');
+                const mapTabContent = document.getElementById('mapTab');
+                
+                // Calculate center position
+                const viewportWidth = mapTabContent.clientWidth;
+                const viewportHeight = mapTabContent.clientHeight;
+                
+                // Use smooth scrolling to center
+                fullMap.scrollTo({
+                    left: location.coordinates.x - viewportWidth / 2,
+                    top: location.coordinates.y - viewportHeight / 2,
+                    behavior: 'smooth'
+                });
+                
+                // Highlight the location marker
+                const marker = document.querySelector(`.map-marker[data-location-id="${coordinates}"]`);
+                if (marker) {
+                    marker.classList.add('focused');
+                    
+                    // Remove focus class after animation
+                    setTimeout(() => {
+                        marker.classList.remove('focused');
+                    }, 2000);
+                }
+            }
+        } else if (type === 'player') {
+            // Center map on player
+            const playerX = this.player.offsetLeft + this.player.offsetWidth / 2;
+            const playerY = this.player.offsetTop + this.player.offsetHeight / 2;
+            
+            const fullMap = document.getElementById('fullMap');
+            const mapTabContent = document.getElementById('mapTab');
+            
+            // Calculate center position
+            const viewportWidth = mapTabContent.clientWidth;
+            const viewportHeight = mapTabContent.clientHeight;
+            
+            // Use smooth scrolling to center
+            fullMap.scrollTo({
+                left: playerX - viewportWidth / 2,
+                top: playerY - viewportHeight / 2,
+                behavior: 'smooth'
+            });
+        } else if (type === 'custom') {
+            // Center on custom coordinates
+            const fullMap = document.getElementById('fullMap');
+            const mapTabContent = document.getElementById('mapTab');
+            
+            // Calculate center position
+            const viewportWidth = mapTabContent.clientWidth;
+            const viewportHeight = mapTabContent.clientHeight;
+            
+            // Use smooth scrolling to center
+            fullMap.scrollTo({
+                left: coordinates.x - viewportWidth / 2,
+                top: coordinates.y - viewportHeight / 2,
                 behavior: 'smooth'
             });
         }
+    }
+
+    showNotification(message) {
+        // Create notification element if it doesn't exist
+        if (!this.notificationElement) {
+            this.notificationElement = document.createElement('div');
+            this.notificationElement.className = 'game-notification';
+            document.body.appendChild(this.notificationElement);
+        }
+        
+        // Set message and show
+        this.notificationElement.textContent = message;
+        this.notificationElement.classList.add('show');
+        
+        // Hide after delay
+        clearTimeout(this.notificationTimeout);
+        this.notificationTimeout = setTimeout(() => {
+            this.notificationElement.classList.remove('show');
+        }, 3000);
+    }
+
+    playSoundEffect(sound) {
+        const soundEffect = document.getElementById('soundEffect');
+        
+        // Different sound effects
+        const sounds = {
+            'discovery': 'assets/audio/discovery.mp3',
+            'clue': 'assets/audio/clue.mp3',
+            'error': 'assets/audio/error.mp3',
+            'success': 'assets/audio/success.mp3',
+            'photo': 'assets/audio/photo.mp3',
+            'page': 'assets/audio/page.mp3',
+            'footsteps': 'assets/audio/footsteps.mp3',
+            'door': 'assets/audio/door.mp3',
+            'whisper': 'assets/audio/whisper.mp3',
+            'creak': 'assets/audio/creak.mp3',
+            'wind': 'assets/audio/wind.mp3',
+            'cat': 'assets/audio/cat.mp3'
+        };
+        
+        // If we have the sound, play it
+        if (sounds[sound]) {
+            const source = soundEffect.querySelector('source');
+            source.src = sounds[sound];
+            soundEffect.load();
+            soundEffect.play().catch(e => console.error("Error playing sound:", e));
+        } else {
+            console.warn(`Sound effect "${sound}" not found`);
+        }
+    }
+
+    unlockLocation(locationId) {
+        return this.mapManager.discoverLocation(locationId);
+    }
+
+    isLocationDiscovered(locationId) {
+        const location = this.mapManager.mapLocations.find(loc => loc.id === locationId);
+        return location ? location.discovered : false;
+    }
+
+    triggerMapEffect(effectType, position) {
+        this.mapManager.createAmbientEffect(effectType, position.x, position.y);
     }
 
     startTimeLoop() {
@@ -1738,7 +1851,14 @@ class Game {
             foundClues: Array.from(this.foundClues),
             photos: this.photoDetails.map(p => ({ ...p })),
             events: this.events.map(e => ({ ...e })),
-            puzzleState: this.puzzleManager ? this.puzzleManager.exportPuzzleState() : null
+            puzzleState: this.puzzleManager ? this.puzzleManager.exportPuzzleState() : null,
+            mapData: {
+                discoveredLocations: this.mapManager.mapLocations.map(loc => ({
+                    id: loc.id,
+                    discovered: loc.discovered
+                })),
+                pins: this.mapManager.pins
+            }
         };
         
         // Generate save name with date
@@ -1916,6 +2036,32 @@ class Game {
                     this.updatePuzzleInNotebook(puzzle.id, puzzle, true);
                 }
             });
+        }
+        
+        // Load map data if available
+        if (saveData.mapData) {
+            // Restore discovered locations
+            if (saveData.mapData.discoveredLocations) {
+                saveData.mapData.discoveredLocations.forEach(savedLoc => {
+                    const location = this.mapManager.mapLocations.find(loc => loc.id === savedLoc.id);
+                    if (location) {
+                        location.discovered = savedLoc.discovered;
+                    }
+                });
+            }
+            
+            // Restore pins
+            if (saveData.mapData.pins) {
+                // Clear existing pins
+                this.mapManager.pins = [];
+                const existingPins = this.mapManager.fullMap.querySelectorAll('.map-pin');
+                existingPins.forEach(pin => pin.remove());
+                
+                // Add pins from save
+                saveData.mapData.pins.forEach(pin => {
+                    this.mapManager.addPin(pin.x, pin.y, pin.note, pin.color);
+                });
+            }
         }
         
         // Close load menu if it's open
@@ -3764,6 +3910,255 @@ class Game {
                 endGameBtn.style.fontWeight = 'bold';
             }
         }
+    }
+
+    // Add random ambient effect methods
+    createRandomAmbientEffect(type, count) {
+        if (type === 'firefly') {
+            for (let i = 0; i < count; i++) {
+                setTimeout(() => {
+                    if (!this.player) return;
+                    
+                    // Create near player position with some randomness
+                    const playerX = this.player.offsetLeft + this.player.offsetWidth / 2;
+                    const playerY = this.player.offsetTop + this.player.offsetHeight / 2;
+                    
+                    const offsetX = (Math.random() - 0.5) * 200; // -100 to 100
+                    const offsetY = (Math.random() - 0.5) * 200; // -100 to 100
+                    
+                    const firefly = document.createElement('div');
+                    firefly.className = 'ambient-effect firefly';
+                    firefly.style.left = `${playerX + offsetX}px`;
+                    firefly.style.top = `${playerY + offsetY}px`;
+                    
+                    // Random animation delay
+                    firefly.style.animationDelay = `${Math.random() * 2}s`;
+                    
+                    this.gameBoard.appendChild(firefly);
+                    
+                    // Remove after animation
+                    setTimeout(() => {
+                        if (firefly.parentNode) {
+                            firefly.parentNode.removeChild(firefly);
+                        }
+                    }, 10000); // 10 seconds
+                }, i * 200); // Stagger creation
+            }
+        }
+    }
+
+    createCat() {
+        if (!this.player) return;
+        
+        // Get random edge of the screen to start from
+        const playerX = this.player.offsetLeft + this.player.offsetWidth / 2;
+        const playerY = this.player.offsetTop + this.player.offsetHeight / 2;
+        
+        const viewportWidth = this.gameBoard.clientWidth;
+        const viewportHeight = this.gameBoard.clientHeight;
+        
+        // Determine start position (off screen)
+        let startX, startY, endX, endY;
+        
+        // Coming from left/right or top/bottom?
+        if (Math.random() > 0.5) {
+            // Left or right
+            startX = Math.random() > 0.5 ? -50 : viewportWidth + 50;
+            startY = playerY + (Math.random() - 0.5) * 200;
+            endX = startX > 0 ? -50 : viewportWidth + 50;
+            endY = startY + (Math.random() - 0.5) * 100;
+        } else {
+            // Top or bottom
+            startX = playerX + (Math.random() - 0.5) * 200;
+            startY = Math.random() > 0.5 ? -50 : viewportHeight + 50;
+            endX = startX + (Math.random() - 0.5) * 100;
+            endY = startY > 0 ? -50 : viewportHeight + 50;
+        }
+        
+        // Create cat element
+        const cat = document.createElement('div');
+        cat.className = 'ambient-effect cat';
+        cat.style.left = `${startX}px`;
+        cat.style.top = `${startY}px`;
+        
+        // Add cat image
+        cat.innerHTML = `<div class="cat-silhouette"></div>`;
+        
+        this.gameBoard.appendChild(cat);
+        
+        // Animate cat crossing
+        const duration = 5000 + Math.random() * 3000; // 5-8 seconds
+        
+        // Use CSS animation API
+        cat.animate([
+            { left: `${startX}px`, top: `${startY}px` },
+            { left: `${endX}px`, top: `${endY}px` }
+        ], {
+            duration: duration,
+            easing: 'ease-in-out'
+        });
+        
+        // Play soft sound
+        this.playSoundEffect('cat');
+        
+        // Remove after animation
+        setTimeout(() => {
+            if (cat.parentNode) {
+                cat.parentNode.removeChild(cat);
+            }
+        }, duration + 100);
+    }
+
+    flickerNearbyLight() {
+        // Find nearby house
+        const playerX = this.player.offsetLeft + this.player.offsetWidth / 2;
+        const playerY = this.player.offsetTop + this.player.offsetHeight / 2;
+        
+        // Find closest house
+        let closestHouse = null;
+        let closestDistance = Infinity;
+        
+        this.houses.forEach(house => {
+            const houseX = house.offsetLeft + house.offsetWidth / 2;
+            const houseY = house.offsetTop + house.offsetHeight / 2;
+            
+            const distance = Math.sqrt(
+                Math.pow(houseX - playerX, 2) + 
+                Math.pow(houseY - playerY, 2)
+            );
+            
+            if (distance < closestDistance) {
+                closestDistance = distance;
+                closestHouse = house;
+            }
+        });
+        
+        // If house is within range, make it flicker
+        if (closestHouse && closestDistance < 200) {
+            // Create window light element if not exists
+            let windowLight = closestHouse.querySelector('.house-window');
+            if (!windowLight) {
+                windowLight = document.createElement('div');
+                windowLight.className = 'house-window';
+                closestHouse.appendChild(windowLight);
+            }
+            
+            // Do flickering animation
+            windowLight.classList.add('flickering');
+            
+            // Create audio cue
+            const audioX = closestHouse.offsetLeft + closestHouse.offsetWidth / 2;
+            const audioY = closestHouse.offsetTop + closestHouse.offsetHeight / 2;
+            
+            const audioCue = document.createElement('div');
+            audioCue.className = 'audio-cue';
+            audioCue.style.left = `${audioX}px`;
+            audioCue.style.top = `${audioY}px`;
+            
+            this.gameBoard.appendChild(audioCue);
+            
+            // Remove flicker and cue after a while
+            setTimeout(() => {
+                windowLight.classList.remove('flickering');
+                if (audioCue.parentNode) {
+                    audioCue.parentNode.removeChild(audioCue);
+                }
+            }, 3000);
+        }
+    }
+
+    playRandomAmbientSound() {
+        const sounds = ['whisper', 'creak', 'wind', 'footsteps'];
+        const randomSound = sounds[Math.floor(Math.random() * sounds.length)];
+        this.playSoundEffect(randomSound);
+    }
+    
+    // Add method to check for random events
+    checkRandomEvents() {
+        // Check cooldown
+        const now = Date.now();
+        if (now - this.lastRandomEvent < this.randomEventCooldown) {
+            return;
+        }
+        
+        // Filter events for current time of day
+        const possibleEvents = this.randomEvents.filter(event => 
+            event.timeOfDay.includes(this.timeOfDay)
+        );
+        
+        if (possibleEvents.length === 0) return;
+        
+        // Check each event probability
+        for (const event of possibleEvents) {
+            if (Math.random() <= event.probability) {
+                // Check location constraint if exists
+                if (event.location) {
+                    if (event.location.near === 'house') {
+                        // Check if player is near a house
+                        const playerX = this.player.offsetLeft + this.player.offsetWidth / 2;
+                        const playerY = this.player.offsetTop + this.player.offsetHeight / 2;
+                        
+                        let nearHouse = false;
+                        for (const house of this.houses) {
+                            const houseX = house.offsetLeft + house.offsetWidth / 2;
+                            const houseY = house.offsetTop + house.offsetHeight / 2;
+                            
+                            const distance = Math.sqrt(
+                                Math.pow(houseX - playerX, 2) + 
+                                Math.pow(houseY - playerY, 2)
+                            );
+                            
+                            if (distance <= event.location.distance) {
+                                nearHouse = true;
+                                break;
+                            }
+                        }
+                        
+                        if (!nearHouse) continue; // Skip this event
+                    }
+                }
+                
+                // Trigger event
+                event.action();
+                this.lastRandomEvent = now;
+                break; // Only trigger one event per check
+            }
+        }
+    }
+    
+    // Update tick method to check for random events
+    tick() {
+        // ... existing tick code ...
+        
+        // Check for random events
+        this.checkRandomEvents();
+        
+        // ... rest of existing tick code ...
+    }
+
+    // Search for player movement methods and add this new method
+
+    /**
+     * Move player to a specific position on the game board
+     * @param {number} x - X coordinate
+     * @param {number} y - Y coordinate
+     */
+    movePlayerTo(x, y) {
+        if (!this.player) return;
+        
+        // Account for player dimensions (center the player)
+        const adjustedX = x - this.player.offsetWidth / 2;
+        const adjustedY = y - this.player.offsetHeight / 2;
+        
+        // Set player position
+        this.player.style.left = `${adjustedX}px`;
+        this.player.style.top = `${adjustedY}px`;
+        
+        // Update player position on map
+        this.mapManager.updatePlayerPosition();
+        
+        // Check for nearby elements at the new position
+        this.checkNearbyElements();
     }
 }
 

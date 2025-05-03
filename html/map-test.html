@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maplewood Lane - Map System Test</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="../css/map-enhancements.css">
+    <style>
+        body {
+            background-color: #16213e;
+            color: #e6e6e6;
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .test-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .test-header {
+            text-align: center;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #4cc9f0;
+            padding-bottom: 10px;
+        }
+        
+        .test-controls {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .control-group {
+            background-color: #0f3460;
+            padding: 10px;
+            border-radius: 5px;
+            flex: 1 1 200px;
+        }
+        
+        .control-group h3 {
+            margin-top: 0;
+            color: #4cc9f0;
+            border-bottom: 1px solid rgba(76, 201, 240, 0.3);
+            padding-bottom: 5px;
+        }
+        
+        button {
+            background-color: #4cc9f0;
+            color: #16213e;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        
+        button.secondary {
+            background-color: rgba(76, 201, 240, 0.2);
+            color: #4cc9f0;
+        }
+        
+        .map-container {
+            width: 100%;
+            height: 600px;
+            background-color: #0f3460;
+            border-radius: 8px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .test-player {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background-color: #4cc9f0;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 20;
+        }
+        
+        .fake-house {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            background-color: #0f3460;
+            border: 2px solid #4cc9f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #4cc9f0;
+            font-weight: bold;
+        }
+        
+        .logger {
+            margin-top: 20px;
+            background-color: #0f3460;
+            border-radius: 5px;
+            padding: 10px;
+            height: 150px;
+            overflow-y: auto;
+        }
+        
+        .log-entry {
+            margin-bottom: 5px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid rgba(76, 201, 240, 0.1);
+        }
+        
+        .log-entry.success {
+            color: #7bf1a8;
+        }
+        
+        .log-entry.error {
+            color: #ff4d6d;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <div class="test-header">
+            <h1>Map System Test Environment</h1>
+            <p>Test the enhanced map features for Maplewood Lane</p>
+        </div>
+        
+        <div class="test-controls">
+            <div class="control-group">
+                <h3>Player Movement</h3>
+                <button id="moveUp">Move Up</button>
+                <button id="moveDown">Move Down</button>
+                <button id="moveLeft">Move Left</button>
+                <button id="moveRight">Move Right</button>
+            </div>
+            
+            <div class="control-group">
+                <h3>Time Controls</h3>
+                <button id="timeMorning">Morning</button>
+                <button id="timeAfternoon">Afternoon</button>
+                <button id="timeEvening">Evening</button>
+                <button id="timeNight">Night</button>
+            </div>
+            
+            <div class="control-group">
+                <h3>Map Features</h3>
+                <button id="toggleFog">Toggle Fog</button>
+                <button id="unlockLocation">Unlock Location</button>
+                <button id="randomEvent">Trigger Random Event</button>
+            </div>
+            
+            <div class="control-group">
+                <h3>Map Controls</h3>
+                <button id="zoomIn">Zoom In</button>
+                <button id="zoomOut">Zoom Out</button>
+                <button id="resetZoom">Reset Zoom</button>
+            </div>
+        </div>
+        
+        <div class="map-container" id="mapContainer">
+            <div class="full-map" id="fullMap">
+                <!-- Fake houses for testing -->
+                <div class="fake-house" style="left: 150px; top: 150px;">House 1</div>
+                <div class="fake-house" style="left: 300px; top: 150px;">House 2</div>
+                <div class="fake-house" style="left: 450px; top: 150px;">House 3</div>
+                <div class="fake-house" style="left: 600px; top: 150px;">House 4</div>
+                
+                <!-- Test player -->
+                <div class="test-player" id="testPlayer" style="left: 300px; top: 300px;"></div>
+            </div>
+        </div>
+        
+        <div class="logger">
+            <div class="log-entry">Map test initialized</div>
+        </div>
+    </div>
+    
+    <script>
+        // Mock Game class for testing
+        class Game {
+            constructor() {
+                this.player = document.getElementById('testPlayer');
+                this.timeOfDay = 'morning';
+                this.foundClues = new Set();
+                this.dialogueManager = {
+                    getTrustLevel: (characterId) => 50 // Mock trust level
+                };
+                
+                this.houses = Array.from(document.querySelectorAll('.fake-house'));
+                
+                // Logger
+                this.logger = document.querySelector('.logger');
+            }
+            
+            log(message, type = 'info') {
+                const entry = document.createElement('div');
+                entry.className = `log-entry ${type}`;
+                entry.textContent = message;
+                this.logger.appendChild(entry);
+                this.logger.scrollTop = this.logger.scrollHeight;
+            }
+            
+            showNotification(message) {
+                this.log(message, 'success');
+            }
+            
+            focusOnLocation(type, coordinates) {
+                if (type === 'custom') {
+                    this.log(`Focusing on location: ${coordinates.x}, ${coordinates.y}`);
+                } else {
+                    this.log(`Focusing on ${type}: ${coordinates}`);
+                }
+            }
+            
+            playSoundEffect(sound) {
+                this.log(`Playing sound effect: ${sound}`);
+            }
+        }
+        
+        // Initialize test environment
+        document.addEventListener('DOMContentLoaded', () => {
+            const game = new Game();
+            
+            // Initialize MapManager with our mock game
+            const mapManager = new MapManager(game);
+            
+            // Set up player movement controls
+            document.getElementById('moveUp').addEventListener('click', () => {
+                const player = document.getElementById('testPlayer');
+                const y = parseInt(player.style.top) - 20;
+                player.style.top = `${y}px`;
+                mapManager.update();
+                game.log(`Player moved to position: ${player.style.left}, ${player.style.top}`);
+            });
+            
+            document.getElementById('moveDown').addEventListener('click', () => {
+                const player = document.getElementById('testPlayer');
+                const y = parseInt(player.style.top) + 20;
+                player.style.top = `${y}px`;
+                mapManager.update();
+                game.log(`Player moved to position: ${player.style.left}, ${player.style.top}`);
+            });
+            
+            document.getElementById('moveLeft').addEventListener('click', () => {
+                const player = document.getElementById('testPlayer');
+                const x = parseInt(player.style.left) - 20;
+                player.style.left = `${x}px`;
+                mapManager.update();
+                game.log(`Player moved to position: ${player.style.left}, ${player.style.top}`);
+            });
+            
+            document.getElementById('moveRight').addEventListener('click', () => {
+                const player = document.getElementById('testPlayer');
+                const x = parseInt(player.style.left) + 20;
+                player.style.left = `${x}px`;
+                mapManager.update();
+                game.log(`Player moved to position: ${player.style.left}, ${player.style.top}`);
+            });
+            
+            // Time controls
+            document.getElementById('timeMorning').addEventListener('click', () => {
+                game.timeOfDay = 'morning';
+                mapManager.update();
+                game.log('Time changed to morning');
+            });
+            
+            document.getElementById('timeAfternoon').addEventListener('click', () => {
+                game.timeOfDay = 'afternoon';
+                mapManager.update();
+                game.log('Time changed to afternoon');
+            });
+            
+            document.getElementById('timeEvening').addEventListener('click', () => {
+                game.timeOfDay = 'evening';
+                mapManager.update();
+                game.log('Time changed to evening');
+            });
+            
+            document.getElementById('timeNight').addEventListener('click', () => {
+                game.timeOfDay = 'night';
+                mapManager.update();
+                game.log('Time changed to night');
+            });
+            
+            // Map features
+            document.getElementById('toggleFog').addEventListener('click', () => {
+                mapManager.toggleFogOfWar();
+                game.log(`Fog of war ${mapManager.fogEnabled ? 'enabled' : 'disabled'}`);
+            });
+            
+            document.getElementById('unlockLocation').addEventListener('click', () => {
+                // Find a random undiscovered location and unlock it
+                const undiscoveredLocations = mapManager.mapLocations.filter(loc => !loc.discovered);
+                if (undiscoveredLocations.length > 0) {
+                    const randomIndex = Math.floor(Math.random() * undiscoveredLocations.length);
+                    const location = undiscoveredLocations[randomIndex];
+                    location.discovered = true;
+                    mapManager.update();
+                    game.log(`Unlocked location: ${location.name}`, 'success');
+                } else {
+                    game.log('All locations already discovered', 'error');
+                }
+            });
+            
+            document.getElementById('randomEvent').addEventListener('click', () => {
+                // Trigger a random ambient effect
+                const effects = ['firefly', 'cat', 'light_flicker', 'sound'];
+                const randomEffect = effects[Math.floor(Math.random() * effects.length)];
+                
+                switch (randomEffect) {
+                    case 'firefly':
+                        game.log('Triggering firefly effect');
+                        // Simulate the method in game.js
+                        for (let i = 0; i < 5; i++) {
+                            const firefly = document.createElement('div');
+                            firefly.className = 'ambient-effect firefly';
+                            const x = Math.random() * 800;
+                            const y = Math.random() * 600;
+                            firefly.style.left = `${x}px`;
+                            firefly.style.top = `${y}px`;
+                            firefly.style.animationDelay = `${Math.random() * 2}s`;
+                            document.getElementById('fullMap').appendChild(firefly);
+                            
+                            setTimeout(() => {
+                                if (firefly.parentNode) {
+                                    firefly.parentNode.removeChild(firefly);
+                                }
+                            }, 10000);
+                        }
+                        break;
+                        
+                    case 'cat':
+                        game.log('Triggering cat crossing');
+                        game.playSoundEffect('cat');
+                        break;
+                        
+                    case 'light_flicker':
+                        game.log('Triggering light flicker effect');
+                        // Add flickering to a random house
+                        const houses = document.querySelectorAll('.fake-house');
+                        const randomHouse = houses[Math.floor(Math.random() * houses.length)];
+                        
+                        randomHouse.style.boxShadow = '0 0 10px rgba(255, 255, 0, 0.8)';
+                        randomHouse.style.animation = 'pulse 1s infinite';
+                        
+                        setTimeout(() => {
+                            randomHouse.style.boxShadow = '';
+                            randomHouse.style.animation = '';
+                        }, 3000);
+                        break;
+                        
+                    case 'sound':
+                        const sounds = ['whisper', 'creak', 'wind', 'footsteps'];
+                        const randomSound = sounds[Math.floor(Math.random() * sounds.length)];
+                        game.playSoundEffect(randomSound);
+                        break;
+                }
+            });
+            
+            // Map controls
+            document.getElementById('zoomIn').addEventListener('click', () => {
+                mapManager.zoomMap('in');
+                game.log(`Map zoomed in. Current zoom: ${mapManager.mapZoom.toFixed(2)}`);
+            });
+            
+            document.getElementById('zoomOut').addEventListener('click', () => {
+                mapManager.zoomMap('out');
+                game.log(`Map zoomed out. Current zoom: ${mapManager.mapZoom.toFixed(2)}`);
+            });
+            
+            document.getElementById('resetZoom').addEventListener('click', () => {
+                mapManager.resetMapZoom();
+                game.log('Map zoom reset to 1.0');
+            });
+            
+            // Initialize
+            mapManager.update();
+            game.log('Map system initialized successfully');
+        });
+    </script>
+    
+    <script src="../js/MapManager.js"></script>
+</body>
+</html> 
