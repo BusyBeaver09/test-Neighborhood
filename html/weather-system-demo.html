@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather System Demo - Quiet Hollow</title>
+    <link rel="stylesheet" href="../css/weather-system.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background-color: #111;
+            color: #eee;
+        }
+        
+        .demo-container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+        
+        .demo-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            padding: 20px;
+            background-color: #222;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .control-group {
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        
+        select, input {
+            width: 100%;
+            padding: 8px;
+            border-radius: 4px;
+            background-color: #333;
+            color: #eee;
+            border: 1px solid #444;
+        }
+        
+        button {
+            padding: 10px 15px;
+            background-color: #1a1a2e;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: #2a2a4e;
+        }
+        
+        .scene-container {
+            position: relative;
+            width: 100%;
+            height: 500px;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+        
+        .demo-scene {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, #1a1a2e 0%, #16213e 100%);
+            overflow: hidden;
+        }
+        
+        .sun-moon {
+            position: absolute;
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            left: 50%;
+            background-color: #FFD700;
+            box-shadow: 0 0 40px rgba(255, 215, 0, 0.6);
+            transform: translateX(-50%);
+            transition: top 2s, background-color 2s, box-shadow 2s;
+        }
+        
+        .ground {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 120px;
+            background-color: #284428;
+            transition: background-color 2s;
+        }
+        
+        .trees {
+            position: absolute;
+            bottom: 120px;
+            left: 0;
+            width: 100%;
+            height: 150px;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="150" viewBox="0 0 1000 150"><path d="M50,150 L70,80 L90,150 Z" fill="%23324D32"/><path d="M150,150 L180,50 L210,150 Z" fill="%23243824"/><path d="M250,150 L280,60 L310,150 Z" fill="%23324D32"/><path d="M350,150 L370,70 L390,150 Z" fill="%23243824"/><path d="M450,150 L470,80 L490,150 Z" fill="%23324D32"/><path d="M550,150 L580,50 L610,150 Z" fill="%23243824"/><path d="M650,150 L680,60 L710,150 Z" fill="%23324D32"/><path d="M750,150 L770,70 L790,150 Z" fill="%23243824"/><path d="M850,150 L870,80 L890,150 Z" fill="%23324D32"/><path d="M950,150 L980,50 L1010,150 Z" fill="%23243824"/></svg>');
+            background-repeat: repeat-x;
+            background-size: 1000px 150px;
+            transition: filter 2s;
+        }
+        
+        .house {
+            position: absolute;
+            bottom: 120px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 200px;
+            height: 180px;
+        }
+        
+        .house-body {
+            position: absolute;
+            bottom: 0;
+            left: 25px;
+            width: 150px;
+            height: 120px;
+            background-color: #8B4513;
+            transition: filter 2s;
+        }
+        
+        .house-roof {
+            position: absolute;
+            bottom: 120px;
+            left: 0;
+            width: 0;
+            height: 0;
+            border-left: 100px solid transparent;
+            border-right: 100px solid transparent;
+            border-bottom: 60px solid #A52A2A;
+            transition: filter 2s;
+        }
+        
+        .window {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background-color: #FFD700;
+            border: 3px solid #8B4513;
+            transition: background-color 2s, box-shadow 2s;
+        }
+        
+        .window-1 {
+            top: 30px;
+            left: 30px;
+        }
+        
+        .window-2 {
+            top: 30px;
+            right: 30px;
+        }
+        
+        .door {
+            position: absolute;
+            bottom: 0;
+            left: 60px;
+            width: 30px;
+            height: 60px;
+            background-color: #5D4037;
+            transition: filter 2s;
+        }
+        
+        .weather-info {
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        
+        .info-label {
+            font-weight: bold;
+            color: #aaa;
+            min-width: 150px;
+        }
+        
+        /* Time of day themes */
+        .morning {
+            background: linear-gradient(to bottom, #87CEEB 0%, #ADD8E6 100%);
+        }
+        
+        .afternoon {
+            background: linear-gradient(to bottom, #1E90FF 0%, #87CEEB 100%);
+        }
+        
+        .evening {
+            background: linear-gradient(to bottom, #FF7F50 0%, #FFD700 50%, #1E90FF 100%);
+        }
+        
+        .night {
+            background: linear-gradient(to bottom, #000033 0%, #191970 100%);
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-container">
+        <div class="demo-header">
+            <h1>Quiet Hollow Weather System Demo</h1>
+            <p>Test the dynamic weather system with different conditions and time of day settings.</p>
+        </div>
+        
+        <div class="controls">
+            <div class="control-group">
+                <label for="weather-type">Weather Type:</label>
+                <select id="weather-type">
+                    <option value="clear">Clear</option>
+                    <option value="cloudy">Cloudy</option>
+                    <option value="rain">Rain</option>
+                    <option value="fog">Fog</option>
+                    <option value="storm">Storm</option>
+                </select>
+            </div>
+            
+            <div class="control-group">
+                <label for="time-of-day">Time of Day:</label>
+                <select id="time-of-day">
+                    <option value="morning">Morning (6:00 AM)</option>
+                    <option value="afternoon">Afternoon (2:00 PM)</option>
+                    <option value="evening">Evening (6:00 PM)</option>
+                    <option value="night">Night (10:00 PM)</option>
+                </select>
+            </div>
+            
+            <div class="control-group">
+                <label for="intensity">Weather Intensity (0-1):</label>
+                <input type="range" id="intensity" min="0" max="1" step="0.1" value="0.7">
+                <span id="intensity-value">0.7</span>
+            </div>
+            
+            <div class="control-group">
+                <label for="transition-time">Transition Time (seconds):</label>
+                <input type="number" id="transition-time" min="1" max="30" value="5">
+            </div>
+            
+            <div class="control-group">
+                <button id="apply-weather">Apply Weather</button>
+                <button id="random-weather">Random Weather</button>
+            </div>
+        </div>
+        
+        <div class="scene-container">
+            <div class="demo-scene" id="demo-scene">
+                <div class="sun-moon" id="sun-moon"></div>
+                <div class="trees" id="trees"></div>
+                <div class="house">
+                    <div class="house-roof" id="roof"></div>
+                    <div class="house-body" id="house-body">
+                        <div class="window window-1" id="window-1"></div>
+                        <div class="window window-2" id="window-2"></div>
+                        <div class="door" id="door"></div>
+                    </div>
+                </div>
+                <div class="ground" id="ground"></div>
+                
+                <!-- Weather container will be added here by the script -->
+            </div>
+        </div>
+        
+        <div class="weather-info">
+            <h3>Current Weather Stats</h3>
+            <div class="info-row">
+                <span class="info-label">Weather Type:</span>
+                <span id="info-type">Clear</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Time of Day:</span>
+                <span id="info-time">Morning</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Description:</span>
+                <span id="info-description">Clear skies with good visibility.</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Movement Effect:</span>
+                <span id="info-movement">0</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Visibility Effect:</span>
+                <span id="info-visibility">0</span>
+            </div>
+        </div>
+    </div>
+    
+    <script src="../js/WeatherSystem.js"></script>
+    <script>
+        // Mock TimeManager class for the demo
+        class MockTimeManager {
+            constructor() {
+                this.currentTimeOfDay = 'morning';
+                this.listeners = {};
+            }
+            
+            getTimeOfDay() {
+                return this.currentTimeOfDay;
+            }
+            
+            setTimeOfDay(timeOfDay) {
+                const previousTimeOfDay = this.currentTimeOfDay;
+                this.currentTimeOfDay = timeOfDay;
+                
+                // Trigger event
+                if (this.listeners['timeChange']) {
+                    this.listeners['timeChange'].forEach(callback => {
+                        callback({
+                            previousTimeOfDay,
+                            currentTimeOfDay: timeOfDay
+                        });
+                    });
+                }
+            }
+            
+            addEventListener(event, callback) {
+                if (!this.listeners[event]) {
+                    this.listeners[event] = [];
+                }
+                this.listeners[event].push(callback);
+            }
+            
+            removeEventListener(event, callback) {
+                if (this.listeners[event]) {
+                    this.listeners[event] = this.listeners[event].filter(cb => cb !== callback);
+                }
+            }
+        }
+        
+        // Mock GameManager for the demo
+        class MockGameManager {
+            constructor() {
+                this.timeManager = new MockTimeManager();
+            }
+        }
+        
+        // Initialize the demo
+        document.addEventListener('DOMContentLoaded', () => {
+            // Create mock game manager
+            const gameManager = new MockGameManager();
+            
+            // Create the weather system
+            const weatherSystem = new WeatherSystem(gameManager);
+            
+            // Initialize with the demo scene
+            const demoScene = document.getElementById('demo-scene');
+            weatherSystem.init(demoScene);
+            
+            // UI Elements
+            const weatherTypeSelect = document.getElementById('weather-type');
+            const timeOfDaySelect = document.getElementById('time-of-day');
+            const intensitySlider = document.getElementById('intensity');
+            const intensityValue = document.getElementById('intensity-value');
+            const transitionTimeInput = document.getElementById('transition-time');
+            const applyWeatherButton = document.getElementById('apply-weather');
+            const randomWeatherButton = document.getElementById('random-weather');
+            
+            // Info elements
+            const infoType = document.getElementById('info-type');
+            const infoTime = document.getElementById('info-time');
+            const infoDescription = document.getElementById('info-description');
+            const infoMovement = document.getElementById('info-movement');
+            const infoVisibility = document.getElementById('info-visibility');
+            
+            // Scene elements
+            const sunMoon = document.getElementById('sun-moon');
+            const trees = document.getElementById('trees');
+            const ground = document.getElementById('ground');
+            const roof = document.getElementById('roof');
+            const houseBody = document.getElementById('house-body');
+            const door = document.getElementById('door');
+            const window1 = document.getElementById('window-1');
+            const window2 = document.getElementById('window-2');
+            
+            // Event Listeners
+            intensitySlider.addEventListener('input', () => {
+                intensityValue.textContent = intensitySlider.value;
+            });
+            
+            // Apply weather button
+            applyWeatherButton.addEventListener('click', () => {
+                const weatherType = weatherTypeSelect.value;
+                const timeOfDay = timeOfDaySelect.value;
+                const intensity = parseFloat(intensitySlider.value);
+                const transitionTime = parseInt(transitionTimeInput.value);
+                
+                // Set time of day
+                gameManager.timeManager.setTimeOfDay(timeOfDay);
+                
+                // Apply scene changes
+                updateSceneForTimeOfDay(timeOfDay);
+                
+                // Set weather
+                weatherSystem.setWeatherEvent(weatherType, {
+                    intensity,
+                    transitionTime,
+                    duration: 3600 // Long duration for demo
+                });
+                
+                // Update info panel after a short delay to allow transition
+                setTimeout(updateInfoPanel, transitionTime * 1000 + 100);
+            });
+            
+            // Random weather button
+            randomWeatherButton.addEventListener('click', () => {
+                // Pick random weather type
+                const weatherTypes = ['clear', 'cloudy', 'rain', 'fog', 'storm'];
+                const randomWeatherIndex = Math.floor(Math.random() * weatherTypes.length);
+                const randomWeather = weatherTypes[randomWeatherIndex];
+                
+                // Pick random time of day
+                const timeOfDays = ['morning', 'afternoon', 'evening', 'night'];
+                const randomTimeIndex = Math.floor(Math.random() * timeOfDays.length);
+                const randomTime = timeOfDays[randomTimeIndex];
+                
+                // Random intensity between 0.5 and 1
+                const randomIntensity = 0.5 + Math.random() * 0.5;
+                
+                // Update UI to match
+                weatherTypeSelect.value = randomWeather;
+                timeOfDaySelect.value = randomTime;
+                intensitySlider.value = randomIntensity.toFixed(1);
+                intensityValue.textContent = randomIntensity.toFixed(1);
+                
+                // Set time of day
+                gameManager.timeManager.setTimeOfDay(randomTime);
+                
+                // Apply scene changes
+                updateSceneForTimeOfDay(randomTime);
+                
+                // Set weather
+                weatherSystem.setWeatherEvent(randomWeather, {
+                    intensity: randomIntensity,
+                    transitionTime: parseInt(transitionTimeInput.value),
+                    duration: 3600 // Long duration for demo
+                });
+                
+                // Update info panel after a short delay to allow transition
+                setTimeout(updateInfoPanel, parseInt(transitionTimeInput.value) * 1000 + 100);
+            });
+            
+            // Update the info panel with current weather data
+            function updateInfoPanel() {
+                const weatherData = weatherSystem.getCurrentWeatherData();
+                
+                infoType.textContent = weatherData.name;
+                infoTime.textContent = capitalizeFirstLetter(gameManager.timeManager.getTimeOfDay());
+                infoDescription.textContent = weatherData.description;
+                infoMovement.textContent = weatherData.effectOnMovement.toFixed(2);
+                infoVisibility.textContent = weatherData.effectOnVisibility.toFixed(2);
+            }
+            
+            // Update scene appearance based on time of day
+            function updateSceneForTimeOfDay(timeOfDay) {
+                // Clear previous time classes
+                demoScene.classList.remove('morning', 'afternoon', 'evening', 'night');
+                demoScene.classList.add(timeOfDay);
+                
+                // Update sun/moon position and appearance
+                switch(timeOfDay) {
+                    case 'morning':
+                        sunMoon.style.top = '70%';
+                        sunMoon.style.backgroundColor = '#FFA500';
+                        sunMoon.style.boxShadow = '0 0 40px rgba(255, 165, 0, 0.6)';
+                        window1.style.backgroundColor = '#FFFFE0';
+                        window2.style.backgroundColor = '#FFFFE0';
+                        ground.style.backgroundColor = '#2E562E';
+                        break;
+                    case 'afternoon':
+                        sunMoon.style.top = '30%';
+                        sunMoon.style.backgroundColor = '#FFD700';
+                        sunMoon.style.boxShadow = '0 0 60px rgba(255, 215, 0, 0.8)';
+                        window1.style.backgroundColor = '#FFF8DC';
+                        window2.style.backgroundColor = '#FFF8DC';
+                        ground.style.backgroundColor = '#284428';
+                        break;
+                    case 'evening':
+                        sunMoon.style.top = '70%';
+                        sunMoon.style.backgroundColor = '#FF4500';
+                        sunMoon.style.boxShadow = '0 0 50px rgba(255, 69, 0, 0.7)';
+                        window1.style.backgroundColor = '#FFD700';
+                        window2.style.backgroundColor = '#FFD700';
+                        ground.style.backgroundColor = '#233823';
+                        break;
+                    case 'night':
+                        sunMoon.style.top = '30%';
+                        sunMoon.style.backgroundColor = '#E0E0E0';
+                        sunMoon.style.boxShadow = '0 0 30px rgba(224, 224, 224, 0.5)';
+                        window1.style.backgroundColor = '#FFD700';
+                        window2.style.backgroundColor = '#FFD700';
+                        ground.style.backgroundColor = '#1A2F1A';
+                        break;
+                }
+            }
+            
+            // Helper function to capitalize first letter
+            function capitalizeFirstLetter(string) {
+                return string.charAt(0).toUpperCase() + string.slice(1);
+            }
+            
+            // Initialize with current settings
+            updateSceneForTimeOfDay('morning');
+            updateInfoPanel();
+        });
+    </script>
+</body>
+</html> 

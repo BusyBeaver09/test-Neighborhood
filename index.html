@@ -25,6 +25,7 @@
     <link rel="stylesheet" href="css/map-system.css">
     <link rel="stylesheet" href="css/ambient-effects.css">
     <link rel="stylesheet" href="css/photo-system.css">
+    <link rel="stylesheet" href="css/weather-system.css">
     
     <!-- Preload critical resources -->
     <link rel="preload" href="js/game.js" as="script">
@@ -101,6 +102,10 @@
                 <div class="trust-container">
                     <span>Trust Level: </span>
                     <span id="trust">0</span>
+                </div>
+                <div class="weather-container">
+                    <span>Weather: </span>
+                    <span id="weather-indicator">Clear</span>
                 </div>
             </div>
         </div>
@@ -254,6 +259,8 @@
     <script src="js/DevTools.js"></script>
     <script src="js/CompanionSystem.js"></script>
     <script src="js/SpriteAnimator.js"></script>
+    <script src="js/PhotoManager.js"></script>
+    <script src="js/WeatherSystem.js"></script>
     <script>
         // Expose puzzle modules globally for the game.js to access
         window.puzzleModules = {
@@ -275,6 +282,7 @@
             const dialogCharacterName = document.getElementById('dialogCharacterName');
             const dialogText = document.getElementById('dialogText');
             const dialogOptions = document.getElementById('dialogOptions');
+            const weatherIndicator = document.getElementById('weather-indicator');
             
             // Player position and movement
             let playerX = 400;
@@ -439,6 +447,23 @@
                 
                 // Initialize dev tools
                 window.devTools = new DevTools(window.mockGame);
+                
+                // Initialize the weather system
+                if (window.WeatherSystem) {
+                    window.weatherSystem = new WeatherSystem(window.mockGame);
+                    window.weatherSystem.init(gameWorld);
+                    
+                    // Update the weather indicator when weather changes
+                    setInterval(() => {
+                        if (window.weatherSystem) {
+                            const weatherData = window.weatherSystem.getCurrentWeatherData();
+                            weatherIndicator.textContent = weatherData.name;
+                            
+                            // Apply weather effects to movement speed
+                            speed = 5 + (5 * weatherData.effectOnMovement);
+                        }
+                    }, 1000);
+                }
                 
                 // Update time display
                 updateTimeDisplay();
