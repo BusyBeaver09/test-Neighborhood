@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sprite Animation Sheet Creator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        h1, h2 {
+            color: #333;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .tool-section {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .preview-area {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .preview-frame {
+            border: 1px solid #ddd;
+            background: #f9f9f9;
+            padding: 10px;
+            text-align: center;
+        }
+        .preview-frame img {
+            image-rendering: pixelated;
+            image-rendering: -moz-crisp-edges;
+            image-rendering: crisp-edges;
+            width: 64px;
+            height: 128px;
+        }
+        .animation-preview {
+            border: 1px solid #ddd;
+            padding: 15px;
+            background: #333;
+            text-align: center;
+            margin-top: 20px;
+        }
+        .animation-container {
+            display: inline-block;
+            position: relative;
+        }
+        .animation-sprite {
+            width: 64px;
+            height: 128px;
+            image-rendering: pixelated;
+            image-rendering: -moz-crisp-edges;
+            image-rendering: crisp-edges;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            margin: 5px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        select, input {
+            padding: 8px;
+            margin: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .controls {
+            margin: 15px 0;
+        }
+        .frame-uploader {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 15px 0;
+        }
+        .upload-item {
+            border: 1px dashed #aaa;
+            padding: 10px;
+            text-align: center;
+            min-width: 150px;
+        }
+        .help-text {
+            color: #666;
+            font-size: 14px;
+            margin: 5px 0;
+        }
+        .animation-controls {
+            margin-top: 10px;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+    </style>
+</head>
+<body>
+    <h1>Sprite Animation Sheet Creator</h1>
+    <p>This tool helps create and preview animation frames for characters in Quiet Hollow.</p>
+    
+    <div class="container">
+        <div class="tool-section">
+            <h2>1. Select Character</h2>
+            <select id="characterSelect">
+                <option value="player">Player</option>
+                <option value="camille">Camille</option>
+                <option value="jake">Jake</option>
+                <option value="lila">Lila</option>
+            </select>
+            <button id="loadCharacter">Load Character Sprites</button>
+            
+            <div id="characterPreview" class="preview-area">
+                <!-- Character sprites will be displayed here -->
+            </div>
+        </div>
+        
+        <div class="tool-section">
+            <h2>2. Upload or Create Animation Frames</h2>
+            <div class="frame-uploader">
+                <div class="upload-item">
+                    <h3>Walk Frame 1</h3>
+                    <input type="file" id="uploadWalk1" accept="image/png">
+                    <p class="help-text">Base walking position</p>
+                </div>
+                <div class="upload-item">
+                    <h3>Walk Frame 2</h3>
+                    <input type="file" id="uploadWalk2" accept="image/png">
+                    <p class="help-text">Mid-step position</p>
+                </div>
+                <div class="upload-item">
+                    <h3>Walk Frame 3</h3>
+                    <input type="file" id="uploadWalk3" accept="image/png">
+                    <p class="help-text">Full-step position</p>
+                </div>
+                <div class="upload-item">
+                    <h3>Talk Frame 1</h3>
+                    <input type="file" id="uploadTalk1" accept="image/png">
+                    <p class="help-text">Mouth closed</p>
+                </div>
+                <div class="upload-item">
+                    <h3>Talk Frame 2</h3>
+                    <input type="file" id="uploadTalk2" accept="image/png">
+                    <p class="help-text">Mouth open</p>
+                </div>
+            </div>
+            
+            <div class="controls">
+                <button id="createFromBase">Create From Base Sprite</button>
+                <p class="help-text">This will create empty template frames that you can edit in an image editor</p>
+            </div>
+        </div>
+        
+        <div class="tool-section">
+            <h2>3. Preview Animations</h2>
+            <div class="controls">
+                <button id="previewWalk">Preview Walking Animation</button>
+                <button id="previewTalk">Preview Talking Animation</button>
+                <button id="previewBoth">Preview Both Animations</button>
+                <button id="stopPreview">Stop Preview</button>
+            </div>
+            
+            <div class="animation-preview">
+                <div class="animation-container">
+                    <img id="animationSprite" class="animation-sprite" src="../assets/characters/player.png">
+                </div>
+                <div class="animation-controls">
+                    <label>Speed: </label>
+                    <input type="range" id="animationSpeed" min="50" max="300" value="150">
+                    <span id="speedValue">150ms</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="tool-section">
+            <h2>4. Export Animation Frames</h2>
+            <button id="exportFrames">Export All Frames</button>
+            <p class="help-text">This will download all frames as individual PNG files</p>
+            
+            <div class="controls">
+                <button id="exportWalkSheet">Export Walking Spritesheet</button>
+                <button id="exportTalkSheet">Export Talking Spritesheet</button>
+                <p class="help-text">This will combine frames into a single spritesheet</p>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // DOM elements
+            const characterSelect = document.getElementById('characterSelect');
+            const loadCharacterBtn = document.getElementById('loadCharacter');
+            const characterPreview = document.getElementById('characterPreview');
+            const createFromBaseBtn = document.getElementById('createFromBase');
+            const previewWalkBtn = document.getElementById('previewWalk');
+            const previewTalkBtn = document.getElementById('previewTalk');
+            const previewBothBtn = document.getElementById('previewBoth');
+            const stopPreviewBtn = document.getElementById('stopPreview');
+            const animationSprite = document.getElementById('animationSprite');
+            const animationSpeed = document.getElementById('animationSpeed');
+            const speedValue = document.getElementById('speedValue');
+            const exportFramesBtn = document.getElementById('exportFrames');
+            const exportWalkSheetBtn = document.getElementById('exportWalkSheet');
+            const exportTalkSheetBtn = document.getElementById('exportTalkSheet');
+            
+            // Character sprites
+            let characterData = {
+                player: {
+                    base: '../assets/characters/player.png',
+                    walk1: '../assets/animations/player_walk1.png',
+                    walk2: '../assets/animations/player_walk2.png',
+                    walk3: '../assets/animations/player_walk3.png',
+                    talk1: '../assets/animations/player_talk1.png',
+                    talk2: '../assets/animations/player_talk2.png'
+                },
+                camille: {
+                    base: '../assets/characters/camille.png',
+                    walk1: '../assets/animations/camille_walk1.png',
+                    walk2: '../assets/animations/camille_walk2.png',
+                    walk3: '../assets/animations/camille_walk3.png',
+                    talk1: '../assets/animations/camille_talk1.png',
+                    talk2: '../assets/animations/camille_talk2.png'
+                },
+                jake: {
+                    base: '../assets/characters/jake.png',
+                    walk1: '../assets/animations/jake_walk1.png',
+                    walk2: '../assets/animations/jake_walk2.png',
+                    walk3: '../assets/animations/jake_walk3.png',
+                    talk1: '../assets/animations/jake_talk1.png',
+                    talk2: '../assets/animations/jake_talk2.png'
+                },
+                lila: {
+                    base: '../assets/characters/lila.png',
+                    walk1: '../assets/animations/lila_walk1.png',
+                    walk2: '../assets/animations/lila_walk2.png',
+                    walk3: '../assets/animations/lila_walk3.png',
+                    talk1: '../assets/animations/lila_talk1.png',
+                    talk2: '../assets/animations/lila_talk2.png'
+                }
+            };
+            
+            // Current animation state
+            let animationInterval = null;
+            let currentCharacter = 'player';
+            let currentMode = 'idle';
+            let currentFrame = 0;
+            
+            // Load character sprites
+            loadCharacterBtn.addEventListener('click', function() {
+                currentCharacter = characterSelect.value;
+                loadCharacterPreviews(currentCharacter);
+            });
+            
+            // Load character preview images
+            function loadCharacterPreviews(characterId) {
+                const character = characterData[characterId];
+                
+                // Clear previous previews
+                characterPreview.innerHTML = '';
+                
+                // Add base sprite
+                addPreviewFrame('Base Sprite', character.base);
+                
+                // Add walk frames
+                addPreviewFrame('Walk Frame 1', character.walk1);
+                addPreviewFrame('Walk Frame 2', character.walk2);
+                addPreviewFrame('Walk Frame 3', character.walk3);
+                
+                // Add talk frames
+                addPreviewFrame('Talk Frame 1', character.talk1);
+                addPreviewFrame('Talk Frame 2', character.talk2);
+                
+                // Update animation sprite
+                animationSprite.src = character.base;
+            }
+            
+            // Add a preview frame to the display
+            function addPreviewFrame(label, imageSrc) {
+                const previewFrame = document.createElement('div');
+                previewFrame.className = 'preview-frame';
+                
+                const previewLabel = document.createElement('h4');
+                previewLabel.textContent = label;
+                
+                const previewImg = document.createElement('img');
+                previewImg.src = imageSrc;
+                previewImg.alt = label;
+                
+                previewFrame.appendChild(previewLabel);
+                previewFrame.appendChild(previewImg);
+                characterPreview.appendChild(previewFrame);
+            }
+            
+            // Handle file uploads
+            document.getElementById('uploadWalk1').addEventListener('change', handleFileUpload);
+            document.getElementById('uploadWalk2').addEventListener('change', handleFileUpload);
+            document.getElementById('uploadWalk3').addEventListener('change', handleFileUpload);
+            document.getElementById('uploadTalk1').addEventListener('change', handleFileUpload);
+            document.getElementById('uploadTalk2').addEventListener('change', handleFileUpload);
+            
+            function handleFileUpload(event) {
+                const file = event.target.files[0];
+                if (!file) return;
+                
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const frameId = event.target.id.replace('upload', '').toLowerCase();
+                    const character = characterData[currentCharacter];
+                    
+                    // Update character data
+                    character[frameId] = e.target.result;
+                    
+                    // Reload previews
+                    loadCharacterPreviews(currentCharacter);
+                };
+                reader.readAsDataURL(file);
+            }
+            
+            // Create from base sprite
+            createFromBaseBtn.addEventListener('click', function() {
+                alert('Template frames generated! Now edit these in your image editor according to the animation guide.');
+                // In a real implementation, this would create empty frames based on the base sprite
+            });
+            
+            // Animation preview controls
+            previewWalkBtn.addEventListener('click', function() {
+                startAnimation('walk');
+            });
+            
+            previewTalkBtn.addEventListener('click', function() {
+                startAnimation('talk');
+            });
+            
+            previewBothBtn.addEventListener('click', function() {
+                startAnimation('both');
+            });
+            
+            stopPreviewBtn.addEventListener('click', function() {
+                stopAnimation();
+            });
+            
+            // Animation speed control
+            animationSpeed.addEventListener('input', function() {
+                speedValue.textContent = this.value + 'ms';
+                if (animationInterval) {
+                    stopAnimation();
+                    startAnimation(currentMode);
+                }
+            });
+            
+            // Start animation preview
+            function startAnimation(mode) {
+                stopAnimation();
+                currentMode = mode;
+                
+                const character = characterData[currentCharacter];
+                const speed = parseInt(animationSpeed.value);
+                
+                animationInterval = setInterval(function() {
+                    if (mode === 'walk' || (mode === 'both' && currentFrame < 3)) {
+                        // Walking animation (frames 0-2)
+                        const frameIndex = currentFrame % 3;
+                        const frameSrc = character[`walk${frameIndex + 1}`];
+                        animationSprite.src = frameSrc;
+                    } else if (mode === 'talk' || (mode === 'both' && currentFrame >= 3)) {
+                        // Talking animation (frames 0-1)
+                        const frameIndex = currentFrame % 2;
+                        const frameSrc = character[`talk${frameIndex + 1}`];
+                        animationSprite.src = frameSrc;
+                    }
+                    
+                    // Update frame index
+                    if (mode === 'both') {
+                        currentFrame = (currentFrame + 1) % 5;
+                    } else {
+                        currentFrame = (currentFrame + 1) % (mode === 'walk' ? 3 : 2);
+                    }
+                }, speed);
+            }
+            
+            // Stop animation preview
+            function stopAnimation() {
+                if (animationInterval) {
+                    clearInterval(animationInterval);
+                    animationInterval = null;
+                }
+                
+                // Reset to base sprite
+                animationSprite.src = characterData[currentCharacter].base;
+                currentFrame = 0;
+            }
+            
+            // Export functions
+            exportFramesBtn.addEventListener('click', function() {
+                alert('In a real implementation, this would download all frames as separate PNG files.');
+            });
+            
+            exportWalkSheetBtn.addEventListener('click', function() {
+                alert('In a real implementation, this would combine walk frames into a spritesheet.');
+            });
+            
+            exportTalkSheetBtn.addEventListener('click', function() {
+                alert('In a real implementation, this would combine talk frames into a spritesheet.');
+            });
+            
+            // Initialize with player character
+            loadCharacterPreviews('player');
+        });
+    </script>
+</body>
+</html>

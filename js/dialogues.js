@@ -4,8 +4,236 @@ const DIALOGUES = {
     "mrs_finch": {
         name: "Mrs. Finch",
         portrait: "portrait-mrs-finch",
+        // Add trust reactions
+        trustReactions: {
+            tier_suspicious: "mrs_finch_suspicious_reaction",
+            tier_cautious: "mrs_finch_cautious_reaction",
+            tier_confiding: "mrs_finch_confiding_reaction",
+            tier_vulnerable: "mrs_finch_vulnerable_reaction",
+            trust_gained: "mrs_finch_trust_gained",
+            trust_lost: "mrs_finch_trust_lost"
+        },
+        // Trust reaction dialogues
+        mrs_finch_suspicious_reaction: {
+            text: "[She eyes you warily] Back again? I'm not sure what you want from me, but I'll be keeping my distance.",
+            options: [
+                {
+                    text: "I just wanted to check in on you.",
+                    next: "default",
+                    trustChange: 2
+                },
+                {
+                    text: "I'll leave you alone.",
+                    next: "exit"
+                }
+            ]
+        },
+        mrs_finch_cautious_reaction: {
+            text: "I've been thinking about what we've discussed. Perhaps I was too quick to judge you.",
+            options: [
+                {
+                    text: "I appreciate that, Mrs. Finch.",
+                    next: "default",
+                    trustChange: 3
+                },
+                {
+                    text: "What made you change your mind?",
+                    next: "mrs_finch_reconsider"
+                }
+            ]
+        },
+        mrs_finch_confiding_reaction: {
+            text: "[She smiles warmly] Oh, I'm glad you're here. I was just thinking about something else I remembered about that night.",
+            options: [
+                {
+                    text: "I'd love to hear about it.",
+                    next: "mrs_finch_memory",
+                    trustChange: 2
+                },
+                {
+                    text: "Actually, I had some other questions.",
+                    next: "default"
+                }
+            ]
+        },
+        mrs_finch_vulnerable_reaction: {
+            text: "[She takes your hand] Elia, I've come to trust you completely. There's something I need to show you... something I've kept hidden about Iris.",
+            options: [
+                {
+                    text: "What is it, Mrs. Finch?",
+                    next: "mrs_finch_revelation",
+                    trustChange: 5
+                }
+            ]
+        },
+        mrs_finch_trust_gained: {
+            text: "[She looks at you with a bit more warmth] I must say, you remind me a bit of Iris. She was always respectful too.",
+            options: [
+                {
+                    text: "Thank you, that means a lot.",
+                    next: "default",
+                    trustChange: 1
+                },
+                {
+                    text: "Tell me more about Iris.",
+                    next: "mrs_finch_iris"
+                }
+            ]
+        },
+        mrs_finch_trust_lost: {
+            text: "[Her expression hardens] I thought we understood each other better than this, Elia.",
+            options: [
+                {
+                    text: "I'm sorry if I upset you.",
+                    next: "default",
+                    trustChange: 1
+                },
+                {
+                    text: "Let's just move on.",
+                    next: "default"
+                }
+            ]
+        },
+        // Memory that unlocks at Confiding trust tier
+        mrs_finch_memory: {
+            text: "That night... I didn't tell the police everything. I saw shadows moving between the houses. Not people-shaped, more like... [she gestures vaguely] flowing darkness. I thought I was imagining things, but then Iris mentioned seeing them too, in her journal.",
+            options: [
+                {
+                    text: "Her journal? Do you have it?",
+                    next: "mrs_finch_journal",
+                    trustChange: 2
+                },
+                {
+                    text: "Have you seen these shadows since?",
+                    next: "mrs_finch_shadows_since"
+                }
+            ],
+            givesClue: "Mrs. Finch saw flowing shadow figures the night Iris disappeared"
+        },
+        // Secret revelation at Vulnerable trust tier
+        mrs_finch_revelation: {
+            text: "[She leads you to a bookshelf and removes a false back, pulling out a small leather journal] This was Iris's research journal. I... I took it from her house before the police arrived. I was afraid of what they might do with the information inside.",
+            options: [
+                {
+                    text: "May I see it?",
+                    next: "mrs_finch_gives_journal",
+                    trustChange: 2
+                },
+                {
+                    text: "Why did you hide this?",
+                    next: "mrs_finch_hiding_reason"
+                }
+            ],
+            givesClue: "Mrs. Finch hid Iris's research journal from police"
+        },
+        mrs_finch_gives_journal: {
+            text: "Here. [She hands you the journal] Be careful with this knowledge, Elia. Some things in Maplewood Lane were better left undisturbed. Iris didn't understand that until it was too late.",
+            options: [
+                {
+                    text: "Thank you for trusting me with this.",
+                    next: "exit",
+                    trustChange: 5,
+                    setFlag: "has_iris_journal=true"
+                }
+            ],
+            givesClue: "Iris's journal - 'Some things in Maplewood Lane were better left undisturbed'"
+        },
+        // Default greeting with trust-based variants
+        default_variants: [
+            {
+                nodeId: "default_suspicious",
+                trustTier: "Suspicious",
+                minTrust: 0
+            },
+            {
+                nodeId: "default_cautious",
+                trustTier: "Cautious",
+                minTrust: 11
+            },
+            {
+                nodeId: "default_confiding",
+                trustTier: "Confiding",
+                minTrust: 31
+            },
+            {
+                nodeId: "default_vulnerable",
+                trustTier: "Vulnerable",
+                minTrust: 61
+            }
+        ],
+        default_suspicious: {
+            text: "[Mrs. Finch eyes you suspiciously from her porch] Yes? What do you want?",
+            options: [
+                {
+                    text: "I'm Elia. I'm looking into what happened to Iris Bell.",
+                    next: "mrs_finch_iris_suspicious"
+                },
+                {
+                    text: "I used to live in the neighborhood. Just saying hello.",
+                    next: "mrs_finch_greeting_suspicious"
+                },
+                {
+                    text: "Never mind, sorry to bother you.",
+                    next: "exit"
+                }
+            ]
+        },
+        default_cautious: {
+            text: "[Mrs. Finch nods politely] Hello again, Elia. What can I help you with today?",
+            options: [
+                {
+                    text: "I wanted to ask more about Iris.",
+                    next: "mrs_finch_iris_cautious" 
+                },
+                {
+                    text: "Have you noticed anything unusual in the neighborhood lately?",
+                    next: "mrs_finch_unusual_cautious"
+                },
+                {
+                    text: "Just checking in. How are you doing?",
+                    next: "mrs_finch_greeting_cautious",
+                    trustChange: 2
+                }
+            ]
+        },
+        default_confiding: {
+            text: "[Mrs. Finch smiles warmly] Elia, it's good to see you. Come sit on the porch with me for a bit.",
+            options: [
+                {
+                    text: "I'd like to discuss what you remember about the night Iris disappeared.",
+                    next: "mrs_finch_iris_night_confiding" 
+                },
+                {
+                    text: "Have you been feeling safe? Any strange occurrences?",
+                    next: "mrs_finch_safety_confiding"
+                },
+                {
+                    text: "How have you been, Mrs. Finch?",
+                    next: "mrs_finch_greeting_confiding",
+                    trustChange: 1
+                }
+            ]
+        },
+        default_vulnerable: {
+            text: "[Mrs. Finch embraces you briefly] Oh, Elia. I'm so glad you're here. I've been thinking about what we discussed.",
+            options: [
+                {
+                    text: "Any new thoughts about Iris's research?",
+                    next: "mrs_finch_research_vulnerable" 
+                },
+                {
+                    text: "Have you seen those shadow figures again?",
+                    next: "mrs_finch_shadows_vulnerable"
+                },
+                {
+                    text: "I'm just checking in on you, Mrs. Finch.",
+                    next: "mrs_finch_greeting_vulnerable",
+                    trustChange: 1
+                }
+            ]
+        },
         default: {
-            text: "Oh, hello dear! It's nice to see a new face around Quiet Hollow. Are you visiting?",
+            text: "[A elderly woman with sharp eyes watches you approach from her front porch] Hello there, young one. I don't believe I've seen you around Maplewood Lane before.",
             options: [
                 {
                     text: "I'm Elia Martinez. I used to live here - I've come back to reconnect with the town.",

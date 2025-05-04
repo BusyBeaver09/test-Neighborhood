@@ -1,0 +1,292 @@
+/**
+ * time-system.css - Styles for the advanced time cycle system
+ */
+
+/* Clock Container */
+.clock-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-left: 10px;
+    position: relative;
+}
+
+/* Analog Clock */
+.clock-face {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #2c3e50;
+    border: 2px solid #3498db;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+    transition: background-color 0.5s ease, border-color 0.5s ease;
+}
+
+/* Clock hands */
+.hour-hand, .minute-hand {
+    position: absolute;
+    background-color: #ecf0f1;
+    transform-origin: bottom center;
+    border-radius: 2px;
+    transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.hour-hand {
+    width: 2px;
+    height: 12px;
+    top: 8px;
+}
+
+.minute-hand {
+    width: 1px;
+    height: 16px;
+    top: 4px;
+    background-color: #e74c3c;
+}
+
+/* Clock face colors based on time of day */
+.clock-face.time-morning {
+    background-color: #7fb3d5;
+    border-color: #3498db;
+}
+
+.clock-face.time-afternoon {
+    background-color: #f39c12;
+    border-color: #d35400;
+}
+
+.clock-face.time-evening {
+    background-color: #e67e22;
+    border-color: #c0392b;
+}
+
+.clock-face.time-night {
+    background-color: #2c3e50;
+    border-color: #8e44ad;
+}
+
+/* Time of day indicator */
+.time-of-day-indicator {
+    font-size: 12px;
+    font-weight: bold;
+    color: #ecf0f1;
+    background-color: #34495e;
+    padding: 2px 8px;
+    border-radius: 10px;
+    margin-top: 3px;
+    text-align: center;
+    min-width: 70px;
+    transition: background-color 0.5s ease, color 0.5s ease;
+}
+
+/* Time of day colors */
+.time-of-day-indicator.time-morning {
+    background-color: #3498db;
+    color: #ffffff;
+}
+
+.time-of-day-indicator.time-afternoon {
+    background-color: #f39c12;
+    color: #ffffff;
+}
+
+.time-of-day-indicator.time-evening {
+    background-color: #e67e22;
+    color: #ffffff;
+}
+
+.time-of-day-indicator.time-night {
+    background-color: #2c3e50;
+    color: #9b59b6;
+}
+
+/* Day counter */
+.day-counter {
+    font-size: 10px;
+    color: #bdc3c7;
+    margin-top: 2px;
+}
+
+/* Time transition effect */
+.time-transition {
+    animation: pulse 1s ease-in-out;
+}
+
+/* Day change effect */
+.day-change {
+    animation: dayChange 2s ease-in-out;
+}
+
+/* Pause indicator */
+.pause-indicator {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: rgba(44, 62, 80, 0.8);
+    color: #ecf0f1;
+    padding: 15px 30px;
+    border-radius: 5px;
+    font-size: 24px;
+    font-weight: bold;
+    z-index: 1000;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+}
+
+/* Time scale indicator */
+.time-scale-indicator {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    background-color: rgba(52, 152, 219, 0.7);
+    color: #ffffff;
+    padding: 5px 10px;
+    border-radius: 3px;
+    font-size: 14px;
+    z-index: 999;
+    opacity: 0;
+    transform: translateY(-20px);
+    transition: opacity 0.3s, transform 0.3s;
+}
+
+.time-scale-indicator.active {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Timeline entry styles */
+.timeline-entry {
+    display: flex;
+    margin-bottom: 10px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(127, 140, 141, 0.2);
+}
+
+.timeline-time {
+    min-width: 80px;
+    color: #3498db;
+    font-weight: bold;
+}
+
+.timeline-day {
+    min-width: 60px;
+    color: #95a5a6;
+}
+
+.timeline-description {
+    flex-grow: 1;
+    color: #ecf0f1;
+}
+
+/* Event type indicators */
+.timeline-event-type {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-right: 8px;
+}
+
+.event-type-clue {
+    background-color: #2ecc71;
+}
+
+.event-type-character {
+    background-color: #e74c3c;
+}
+
+.event-type-discovery {
+    background-color: #9b59b6;
+}
+
+.event-type-event {
+    background-color: #f39c12;
+}
+
+/* World time appearance transitions */
+body.time-morning {
+    transition: background-color 3s ease;
+}
+
+body.time-afternoon {
+    transition: background-color 3s ease;
+}
+
+body.time-evening {
+    transition: background-color 3s ease;
+}
+
+body.time-night {
+    transition: background-color 3s ease;
+}
+
+/* Animations */
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+@keyframes dayChange {
+    0% { color: #bdc3c7; }
+    50% { color: #f1c40f; }
+    100% { color: #bdc3c7; }
+}
+
+/* Character activity indicators */
+.neighbor[data-activity="sleeping"] .neighbor-icon::after {
+    content: "💤";
+    position: absolute;
+    top: -15px;
+    right: -5px;
+}
+
+.neighbor[data-activity="gardening"] .neighbor-icon::after {
+    content: "🌱";
+    position: absolute;
+    top: -15px;
+    right: -5px;
+}
+
+.neighbor[data-activity="watching"] .neighbor-icon::after {
+    content: "👀";
+    position: absolute;
+    top: -15px;
+    right: -5px;
+}
+
+/* Time-based world lighting */
+.world-lighting {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    transition: background-color 3s ease, opacity 3s ease;
+    z-index: 5;
+}
+
+.world-lighting.morning {
+    background: radial-gradient(circle, rgba(52, 152, 219, 0) 0%, rgba(52, 152, 219, 0.2) 100%);
+    opacity: 0.2;
+}
+
+.world-lighting.afternoon {
+    background: radial-gradient(circle, rgba(241, 196, 15, 0) 0%, rgba(241, 196, 15, 0.2) 100%);
+    opacity: 0.3;
+}
+
+.world-lighting.evening {
+    background: radial-gradient(circle, rgba(230, 126, 34, 0) 0%, rgba(230, 126, 34, 0.3) 100%);
+    opacity: 0.4;
+}
+
+.world-lighting.night {
+    background: radial-gradient(circle, rgba(44, 62, 80, 0) 0%, rgba(44, 62, 80, 0.7) 100%);
+    opacity: 0.7;
+} 

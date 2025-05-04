@@ -15,11 +15,79 @@
     <title>Quiet Hollow: The Vanishing of Iris Bell</title>
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/puzzles.css">
+    <link rel="stylesheet" href="css/time-system.css">
+    <link rel="stylesheet" href="css/relationship-system.css">
+    <link rel="stylesheet" href="css/ending-system.css">
+    <link rel="stylesheet" href="css/dev-tools.css">
+    <link rel="stylesheet" href="css/companion-system.css">
+    <link rel="stylesheet" href="css/dialogue-system.css">
+    <link rel="stylesheet" href="css/notebook-system.css">
+    <link rel="stylesheet" href="css/map-system.css">
+    <link rel="stylesheet" href="css/ambient-effects.css">
+    <link rel="stylesheet" href="css/photo-system.css">
     
     <!-- Preload critical resources -->
     <link rel="preload" href="js/game.js" as="script">
     <link rel="preload" href="js/dialogues.js" as="script">
     <link rel="preload" href="css/styles.css" as="style">
+    <link rel="preload" href="js/SpriteAnimator.js" as="script">
+    
+    <style>
+        /* Pixel Art Styles - Additional game-specific styles */
+        .pixelated {
+            image-rendering: pixelated;
+            image-rendering: -moz-crisp-edges;
+            image-rendering: crisp-edges;
+        }
+        
+        /* Game elements styling */
+        .game-world {
+            width: 800px;
+            height: 600px;
+            position: relative;
+            overflow: hidden;
+            background-color: #1a1a2e;
+            background-image: url('assets/world/grass_tile.png');
+            background-repeat: repeat;
+        }
+        
+        /* Basic player character */
+        .player {
+            width: 32px;
+            height: 48px;
+            position: absolute;
+            background-image: url('assets/characters/player.png');
+            z-index: 10;
+            transition: transform 0.1s;
+        }
+        
+        /* Default sprite for characters */
+        .character-sprite {
+            width: 32px;
+            height: 48px;
+            position: absolute;
+            z-index: 5;
+        }
+        
+        /* Animation classes */
+        .walking {
+            animation: walk-animation 0.5s steps(3) infinite;
+        }
+        
+        .talking {
+            animation: talk-animation 0.3s steps(2) infinite;
+        }
+        
+        @keyframes walk-animation {
+            from { background-position: 0px; }
+            to { background-position: -96px; } /* 3 frames * 32px width */
+        }
+        
+        @keyframes talk-animation {
+            from { background-position: 0px; }
+            to { background-position: -64px; } /* 2 frames * 32px width */
+        }
+    </style>
 </head>
 <body>
     <div class="game-container">
@@ -37,8 +105,29 @@
             </div>
         </div>
         <div class="game-content">
-            <div class="game-board" id="gameBoard">
-                <!-- Game elements will be added here dynamically -->
+            <div class="game-board pixelated" id="gameBoard">
+                <div class="game-world" id="gameWorld">
+                    <!-- Player character -->
+                    <div class="player pixelated" id="player"></div>
+                    
+                    <!-- Neighbors/NPCs -->
+                    <div class="character-sprite neighbor pixelated" id="neighbor-camille" style="left: 300px; top: 200px; background-image: url('assets/characters/camille.png');"></div>
+                    <div class="character-sprite neighbor pixelated" id="neighbor-jake" style="left: 500px; top: 300px; background-image: url('assets/characters/jake.png');"></div>
+                    <div class="character-sprite neighbor pixelated" id="neighbor-lila" style="left: 200px; top: 400px; background-image: url('assets/characters/lila.png');"></div>
+                    
+                    <!-- Basic houses -->
+                    <div class="house pixelated" style="left: 100px; top: 100px; background-color: #6d6d6d;"></div>
+                    <div class="house pixelated" style="left: 300px; top: 100px; background-color: #8d8d8d;"></div>
+                    <div class="house pixelated" style="left: 500px; top: 100px; background-color: #6d6d6d;"></div>
+                    
+                    <!-- Clue items -->
+                    <div class="item clue pixelated" id="clue-hidden-drawing" style="left: 250px; top: 250px; background-color: #e94560;"></div>
+                    <div class="item clue pixelated" id="clue-locked-gate" style="left: 450px; top: 350px; background-color: #4ecdc4;"></div>
+                    <div class="item clue pixelated" id="clue-missing-records" style="left: 150px; top: 350px; background-color: #ffe66d;"></div>
+                </div>
+                
+                <!-- Game UI Container for companion UI -->
+                <div class="companion-ui"></div>
             </div>
             <div class="minimap-container">
                 <div class="minimap" id="minimap">
@@ -97,49 +186,23 @@
                 <div class="notebook" id="notebook">
                     <h3>Elia's Journal</h3>
                     <div class="notebook-tabs">
-                        <button class="tab active" data-tab="clues">Clues</button>
-                        <button class="tab" data-tab="photos">Photos</button>
-                        <button class="tab" data-tab="notes">Notes</button>
-                        <button class="tab" data-tab="map">Map</button>
-                        <button class="tab" data-tab="puzzlesTab">Puzzles <span class="counter"></span></button>
+                        <button class="tab active" id="notebook-clues-tab">Clues</button>
+                        <button class="tab" id="notebook-photos-tab">Photos</button>
+                        <button class="tab" id="notebook-map-tab">Map</button>
+                        <button class="tab" id="notebook-relationships-tab">Relationships</button>
                     </div>
                     <div class="notebook-content">
-                        <div class="tab-content active" id="cluesTab">
+                        <div id="notebook-clues" class="tab-content active">
                             <ul id="cluesList"></ul>
                         </div>
-                        <div class="tab-content" id="photosTab">
+                        <div id="notebook-photos" class="tab-content">
                             <div id="photosGrid"></div>
                         </div>
-                        <div class="tab-content" id="notesTab">
-                            <textarea id="notesArea" placeholder="Write your observations here..."></textarea>
+                        <div id="notebook-map" class="tab-content">
+                            <div id="mapContainer"></div>
                         </div>
-                        <div class="tab-content" id="mapTab">
-                            <div class="map-controls">
-                                <button class="map-control" id="zoomIn">+</button>
-                                <button class="map-control" id="zoomOut">-</button>
-                                <button class="map-control" id="resetZoom">Reset</button>
-                            </div>
-                            <div class="map-mode-switch">
-                                <div class="map-mode-option active" data-mode="normal">Normal</div>
-                                <div class="map-mode-option" data-mode="clues">Clues</div>
-                            </div>
-                            <div class="time-indicator" id="mapTimeIndicator">Morning</div>
-                            <div class="full-map" id="fullMap">
-                                <div class="location-labels">
-                                    <div class="location-label" data-house="0">Mrs. Finch's House</div>
-                                    <div class="location-label" data-house="1">Jake & Lila's House</div>
-                                    <div class="location-label" data-house="2">Mr. Arnold's House</div>
-                                    <div class="location-label" data-house="3">Iris Bell's House</div>
-                                    <div class="location-label" data-area="park">Quiet Hollow Park</div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="tab-content" id="puzzlesTab">
-                            <h2>Puzzles</h2>
-                            <div class="notebook-subtitle">Mysteries to solve in Quiet Hollow</div>
-                            <div class="notebook-puzzles-list">
-                                <!-- Puzzle entries will be added here dynamically -->
-                            </div>
+                        <div id="notebook-relationships" class="tab-content">
+                            <!-- Relationship content will be generated dynamically -->
                         </div>
                     </div>
                 </div>
@@ -161,6 +224,8 @@
                     <p>• Explore during different times of day</p>
                     <p>• Investigate suspicious locations</p>
                     <p>• Solve puzzles to uncover the truth</p>
+                    <p>• Press 'C' to use companion abilities</p>
+                    <p>• Press '`' (backtick) to open dev tools</p>
                 </div>
             </div>
         </div>
@@ -177,10 +242,18 @@
     </div>
 
     <!-- Game Scripts -->
-    <script src="js/dialogues.js"></script>
+    <script src="js/game.js"></script>
     <script src="js/MapManager.js"></script>
+    <script src="js/dialogues.js"></script>
     <script src="js/PuzzleManager.js"></script>
     <script src="js/puzzles.js"></script>
+    <script src="js/TimeManager.js"></script>
+    <script src="js/EventScheduler.js"></script>
+    <script src="js/RelationshipManager.js"></script>
+    <script src="js/EndingManager.js"></script>
+    <script src="js/DevTools.js"></script>
+    <script src="js/CompanionSystem.js"></script>
+    <script src="js/SpriteAnimator.js"></script>
     <script>
         // Expose puzzle modules globally for the game.js to access
         window.puzzleModules = {
@@ -188,7 +261,431 @@
             PuzzleRenderer: PuzzleRenderer
         };
     </script>
-    <script src="js/game.js"></script>
+    
+    <!-- Add simple game implementation -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Basic game implementation
+            const player = document.getElementById('player');
+            const gameWorld = document.getElementById('gameWorld');
+            const startGameBtn = document.getElementById('startGame');
+            const dialogOverlay = document.getElementById('dialogOverlay');
+            const dialogClose = document.getElementById('dialogClose');
+            const dialogPortrait = document.getElementById('dialogPortrait');
+            const dialogCharacterName = document.getElementById('dialogCharacterName');
+            const dialogText = document.getElementById('dialogText');
+            const dialogOptions = document.getElementById('dialogOptions');
+            
+            // Player position and movement
+            let playerX = 400;
+            let playerY = 300;
+            let speed = 5;
+            let keysPressed = {};
+            
+            // Game state
+            let gameStarted = false;
+            let currentTrust = 0;
+            let foundClues = new Set();
+            let discoveredLocations = new Set(['player_house']);
+            let gameTime = {hours: 6, minutes: 0}; // Start at 6:00 AM
+            
+            // Initialize game
+            function initGame() {
+                // Set initial player position
+                player.style.left = playerX + 'px';
+                player.style.top = playerY + 'px';
+                
+                // Initialize companion system with mock game object
+                window.mockGame = {
+                    timeManager: {
+                        getTimeOfDay: () => {
+                            if (gameTime.hours >= 5 && gameTime.hours < 12) return 'morning';
+                            if (gameTime.hours >= 12 && gameTime.hours < 18) return 'day';
+                            if (gameTime.hours >= 18 && gameTime.hours < 22) return 'evening';
+                            return 'night';
+                        },
+                        getFormattedTime: () => {
+                            const hours = gameTime.hours % 12 || 12;
+                            const ampm = gameTime.hours >= 12 ? 'PM' : 'AM';
+                            return `${hours}:${gameTime.minutes.toString().padStart(2, '0')} ${ampm}`;
+                        },
+                        setTime: (hours, minutes) => {
+                            gameTime.hours = hours;
+                            gameTime.minutes = minutes;
+                            updateTimeDisplay();
+                        },
+                        advanceTime: (hours) => {
+                            gameTime.hours = (gameTime.hours + hours) % 24;
+                            updateTimeDisplay();
+                        }
+                    },
+                    relationshipManager: {
+                        getTrustLevel: () => currentTrust,
+                        changeTrust: (amount) => {
+                            currentTrust += amount;
+                            document.getElementById('trust').textContent = currentTrust;
+                        },
+                        setTrust: (value) => {
+                            currentTrust = value;
+                            document.getElementById('trust').textContent = currentTrust;
+                        },
+                        setRelationshipLevel: (character, level) => {
+                            console.log(`Setting ${character}'s relationship to level ${level}`);
+                        }
+                    },
+                    mapManager: {
+                        getCurrentLocation: () => {
+                            // Simple location detection based on player position
+                            if (playerX < 200 && playerY < 200) return 'player_house';
+                            if (playerX > 400 && playerY < 200) return 'art_studio';
+                            if (playerX > 300 && playerY > 400) return 'town_square';
+                            if (playerX < 200 && playerY > 400) return 'newspaper_office';
+                            return 'town_area';
+                        }
+                    },
+                    foundClues: foundClues,
+                    discoveredLocations: discoveredLocations,
+                    addClueToNotebook: (clue) => {
+                        foundClues.add(clue);
+                        const cluesList = document.getElementById('cluesList');
+                        const clueItem = document.createElement('li');
+                        clueItem.textContent = clue.replace(/_/g, ' ');
+                        cluesList.appendChild(clueItem);
+                        showNotification(`New clue added: ${clue.replace(/_/g, ' ')}`);
+                    },
+                    unlockLocation: (location) => {
+                        discoveredLocations.add(location);
+                        showNotification(`Discovered new location: ${location.replace(/_/g, ' ')}`);
+                    },
+                    updateCluesDisplay: () => {
+                        const cluesList = document.getElementById('cluesList');
+                        cluesList.innerHTML = '';
+                        foundClues.forEach(clue => {
+                            const clueItem = document.createElement('li');
+                            clueItem.textContent = clue.replace(/_/g, ' ');
+                            cluesList.appendChild(clueItem);
+                        });
+                    },
+                    showDialog: (characterId, dialogNode, customDialog) => {
+                        let dialog = customDialog;
+                        
+                        // Use character data
+                        let portrait = '';
+                        let name = '';
+                        
+                        if (characterId === 'camille') {
+                            portrait = 'assets/characters/camille_portrait.png';
+                            name = 'Camille Reed';
+                        } else if (characterId === 'jake') {
+                            portrait = 'assets/characters/jake_portrait.png';
+                            name = 'Jake Meyer';
+                        } else if (characterId === 'lila') {
+                            portrait = 'assets/characters/lila_portrait.png';
+                            name = 'Lila Chen';
+                        }
+                        
+                        // If custom dialog was provided, use it
+                        if (dialog) {
+                            // Set up the dialog box
+                            dialogPortrait.style.backgroundImage = `url(${dialog.portrait || portrait})`;
+                            dialogCharacterName.textContent = dialog.name || name;
+                            dialogText.textContent = dialog.text;
+                            
+                            // Clear previous options
+                            dialogOptions.innerHTML = '';
+                            
+                            // Add dialog options
+                            if (dialog.options && dialog.options.length > 0) {
+                                dialog.options.forEach(option => {
+                                    const optionBtn = document.createElement('button');
+                                    optionBtn.className = 'dialog-option';
+                                    optionBtn.textContent = option.text;
+                                    optionBtn.addEventListener('click', () => {
+                                        if (option.action) option.action();
+                                        dialogOverlay.style.display = 'none';
+                                    });
+                                    dialogOptions.appendChild(optionBtn);
+                                });
+                            }
+                            
+                            // Show the dialog
+                            dialogOverlay.style.display = 'flex';
+                        } else {
+                            // Show a simple dialog if no custom dialog
+                            dialogPortrait.style.backgroundImage = `url(${portrait})`;
+                            dialogCharacterName.textContent = name;
+                            dialogText.textContent = "Hello there! I'm afraid I don't have much to say right now.";
+                            dialogOptions.innerHTML = '';
+                            dialogOverlay.style.display = 'flex';
+                        }
+                    },
+                    resetGame: () => {
+                        playerX = 400;
+                        playerY = 300;
+                        player.style.left = playerX + 'px';
+                        player.style.top = playerY + 'px';
+                        currentTrust = 0;
+                        document.getElementById('trust').textContent = currentTrust;
+                        foundClues.clear();
+                        document.getElementById('cluesList').innerHTML = '';
+                        gameTime = {hours: 6, minutes: 0};
+                        updateTimeDisplay();
+                    },
+                    gameVersion: '1.0.0'
+                };
+                
+                // Initialize companion system
+                window.companionSystem = new CompanionSystem(window.mockGame);
+                
+                // Initialize dev tools
+                window.devTools = new DevTools(window.mockGame);
+                
+                // Update time display
+                updateTimeDisplay();
+            }
+            
+            // Update time display
+            function updateTimeDisplay() {
+                const timeElement = document.getElementById('time');
+                const hours = gameTime.hours % 12 || 12;
+                const ampm = gameTime.hours >= 12 ? 'PM' : 'AM';
+                timeElement.textContent = `${hours}:${gameTime.minutes.toString().padStart(2, '0')} ${ampm}`;
+                
+                // Update world lighting based on time
+                const gameBoard = document.getElementById('gameBoard');
+                gameBoard.className = 'game-board pixelated';
+                
+                if (gameTime.hours >= 5 && gameTime.hours < 12) {
+                    gameBoard.classList.add('morning');
+                } else if (gameTime.hours >= 12 && gameTime.hours < 18) {
+                    gameBoard.classList.add('afternoon');
+                } else if (gameTime.hours >= 18 && gameTime.hours < 22) {
+                    gameBoard.classList.add('evening');
+                } else {
+                    gameBoard.classList.add('night');
+                }
+            }
+            
+            // Show notification
+            function showNotification(message) {
+                const notification = document.createElement('div');
+                notification.className = 'game-notification';
+                notification.textContent = message;
+                document.body.appendChild(notification);
+                
+                // Show notification
+                setTimeout(() => {
+                    notification.classList.add('show');
+                }, 100);
+                
+                // Hide and remove after a delay
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                    setTimeout(() => {
+                        notification.remove();
+                    }, 300);
+                }, 3000);
+            }
+            
+            // Start game
+            startGameBtn.addEventListener('click', function() {
+                if (!gameStarted) {
+                    gameStarted = true;
+                    startGameBtn.textContent = 'Reset Game';
+                    // Enable movement controls
+                    window.addEventListener('keydown', handleKeyDown);
+                    window.addEventListener('keyup', handleKeyUp);
+                    // Start game loop
+                    gameLoop();
+                    showNotification('Game started! Use arrow keys to move.');
+                } else {
+                    // Reset game
+                    window.mockGame.resetGame();
+                    showNotification('Game reset!');
+                }
+            });
+            
+            // Close dialog
+            dialogClose.addEventListener('click', function() {
+                dialogOverlay.style.display = 'none';
+            });
+            
+            // Key press handlers
+            function handleKeyDown(e) {
+                keysPressed[e.key] = true;
+            }
+            
+            function handleKeyUp(e) {
+                keysPressed[e.key] = false;
+            }
+            
+            // Detect collisions with game elements
+            function checkCollisions() {
+                // Check collisions with NPCs
+                document.querySelectorAll('.neighbor').forEach(neighbor => {
+                    const rect1 = player.getBoundingClientRect();
+                    const rect2 = neighbor.getBoundingClientRect();
+                    
+                    // Simple rectangular collision detection
+                    if (rect1.left < rect2.right && rect1.right > rect2.left &&
+                        rect1.top < rect2.bottom && rect1.bottom > rect2.top) {
+                        // Get NPC info from id
+                        const neighborId = neighbor.id.split('-')[1];
+                        
+                        // Mock showDialog for this neighbor
+                        if (neighborId === 'camille') {
+                            window.mockGame.showDialog('camille', null, {
+                                name: 'Camille Reed',
+                                portrait: 'assets/characters/camille_portrait.png',
+                                text: "Hi Elia, I'm Camille. I teach art at the local high school. I might be able to help you with your investigation.",
+                                options: [
+                                    {
+                                        text: "Tell me about your art class.",
+                                        action: () => {
+                                            window.mockGame.relationshipManager.changeTrust(1);
+                                        }
+                                    },
+                                    {
+                                        text: "Did you know Iris?",
+                                        action: () => {
+                                            window.mockGame.relationshipManager.changeTrust(2);
+                                            window.mockGame.addClueToNotebook('iris_art_connection');
+                                        }
+                                    }
+                                ]
+                            });
+                        } else if (neighborId === 'jake') {
+                            window.mockGame.showDialog('jake', null, {
+                                name: 'Jake Meyer',
+                                portrait: 'assets/characters/jake_portrait.png',
+                                text: "Hey there. I'm Jake. I've lived in Quiet Hollow my whole life. I know every corner of this town.",
+                                options: [
+                                    {
+                                        text: "Can you show me around town?",
+                                        action: () => {
+                                            window.mockGame.relationshipManager.changeTrust(1);
+                                        }
+                                    },
+                                    {
+                                        text: "Do you know anything about the old shortcuts?",
+                                        action: () => {
+                                            window.mockGame.relationshipManager.changeTrust(2);
+                                            window.mockGame.addClueToNotebook('locked_gate');
+                                        }
+                                    }
+                                ]
+                            });
+                        } else if (neighborId === 'lila') {
+                            window.mockGame.showDialog('lila', null, {
+                                name: 'Lila Chen',
+                                portrait: 'assets/characters/lila_portrait.png',
+                                text: "I'm Lila Chen, investigative journalist for the Quiet Hollow Gazette. I've been looking into some strange happenings here.",
+                                options: [
+                                    {
+                                        text: "What kind of stories do you cover?",
+                                        action: () => {
+                                            window.mockGame.relationshipManager.changeTrust(1);
+                                        }
+                                    },
+                                    {
+                                        text: "Have you written about any disappearances?",
+                                        action: () => {
+                                            window.mockGame.relationshipManager.changeTrust(2);
+                                            window.mockGame.addClueToNotebook('missing_records');
+                                        }
+                                    }
+                                ]
+                            });
+                        }
+                        
+                        // Stop player movement during dialog
+                        keysPressed = {};
+                    }
+                });
+                
+                // Check collisions with clue items
+                document.querySelectorAll('.item.clue').forEach((item, index) => {
+                    const rect1 = player.getBoundingClientRect();
+                    const rect2 = item.getBoundingClientRect();
+                    
+                    if (rect1.left < rect2.right && rect1.right > rect2.left &&
+                        rect1.top < rect2.bottom && rect1.bottom > rect2.top) {
+                        // Get clue info from id
+                        const clueId = item.id.split('-')[1] + '_' + item.id.split('-')[2];
+                        window.mockGame.addClueToNotebook(clueId);
+                        
+                        // Remove clue from world
+                        item.style.display = 'none';
+                    }
+                });
+            }
+            
+            // Game loop
+            function gameLoop(timestamp) {
+                // Store previous position to check if player moved
+                const prevX = playerX;
+                const prevY = playerY;
+                
+                // Update player position based on key presses
+                if (keysPressed['ArrowUp'] || keysPressed['w']) {
+                    playerY -= speed;
+                    player.classList.add('walking');
+                }
+                if (keysPressed['ArrowDown'] || keysPressed['s']) {
+                    playerY += speed;
+                    player.classList.add('walking');
+                }
+                if (keysPressed['ArrowLeft'] || keysPressed['a']) {
+                    playerX -= speed;
+                    player.classList.add('walking');
+                    player.style.transform = 'scaleX(-1)'; // Flip sprite left
+                }
+                if (keysPressed['ArrowRight'] || keysPressed['d']) {
+                    playerX += speed;
+                    player.classList.add('walking');
+                    player.style.transform = 'scaleX(1)'; // Flip sprite right
+                }
+                
+                // Keep player within bounds
+                if (playerX < 0) playerX = 0;
+                if (playerX > gameWorld.offsetWidth - player.offsetWidth) {
+                    playerX = gameWorld.offsetWidth - player.offsetWidth;
+                }
+                if (playerY < 0) playerY = 0;
+                if (playerY > gameWorld.offsetHeight - player.offsetHeight) {
+                    playerY = gameWorld.offsetHeight - player.offsetHeight;
+                }
+                
+                // Update player element position
+                player.style.left = playerX + 'px';
+                player.style.top = playerY + 'px';
+                
+                // Check if player has stopped moving
+                if (prevX === playerX && prevY === playerY) {
+                    player.classList.remove('walking');
+                }
+                
+                // Check for collisions
+                checkCollisions();
+                
+                // Update companion position and animations
+                if (window.companionSystem && typeof window.companionSystem.updateCompanionPosition === 'function') {
+                    window.companionSystem.updateCompanionPosition();
+                }
+                
+                // Update sprite animations
+                if (window.companionSystem && typeof window.companionSystem.update === 'function') {
+                    window.companionSystem.update(timestamp);
+                }
+                
+                // Continue game loop
+                requestAnimationFrame(gameLoop);
+            }
+            
+            // Initialize the game
+            initGame();
+        });
+    </script>
     
     <!-- Deferred scripts to improve initial load time -->
     <script>

@@ -1,0 +1,60 @@
+ANIMATION FRAME TEMPLATES GUIDE
+
+This guide provides specific pixel-level modification instructions for creating animation frames from base sprites.
+
+== WALKING ANIMATION TEMPLATES ==
+
+For all walking frames, follow these general patterns:
+
+Walk Frame 1 (Neutral position):
+- Base standing pose
+- Legs together or slightly apart
+- Arms at sides
+- Head facing forward
+
+Walk Frame 2 (Left step):
+- Left leg forward by 2-3 pixels
+- Right leg back by 2-3 pixels
+- Slight lean forward (shift upper body 1 pixel)
+- Arms in slight swing position (left arm back, right arm forward)
+
+Walk Frame 3 (Right step):
+- Right leg forward by 2-3 pixels
+- Left leg back by 2-3 pixels
+- Slight lean forward (shift upper body 1 pixel)
+- Arms in opposite swing position (right arm back, left arm forward)
+
+== TALKING ANIMATION TEMPLATES ==
+
+For talking animations, only modify the mouth area:
+
+Talk Frame 1 (Mouth closed):
+- Use base sprite as reference
+- Ensure mouth is in closed/neutral position
+
+Talk Frame 2 (Mouth open):
+- Copy Talk Frame 1 exactly
+- Modify only the mouth area:
+  - Open mouth by 1-2 pixels
+  - Create a small dark area representing the open mouth
+  - Do not change any other facial features
+
+== CHARACTER-SPECIFIC NOTES ==
+
+Jake:
+- Modify his hat position slightly during walking frames
+- Keep his tool belt aligned with movement
+- Maintain his scruffy beard appearance in talking frames
+
+Lila:
+- Her notepad should stay in her hand across all frames
+- Her glasses should remain in the same position
+- Her ponytail can have subtle movement in walking frames
+
+== PIXEL ART TIPS ==
+
+1. Work at 400% zoom minimum for precision
+2. Use the pencil tool with no anti-aliasing
+3. Work with individual pixels for clean edges
+4. Test animations by toggling between frames
+5. Make backup copies before modifying existing sprites 

@@ -1,0 +1,164 @@
+/* Map system styles */
+.minimap-container {
+    position: relative;
+    width: 250px;
+    height: 250px;
+    background-color: #1a1a2e;
+    border: 2px solid #e94560;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-left: 20px;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+}
+
+.minimap {
+    width: 100%;
+    height: 70%;
+    position: relative;
+    background-color: #272741;
+    overflow: hidden;
+}
+
+.map-legend {
+    padding: 10px;
+    font-size: 0.8em;
+    height: 30%;
+    overflow-y: auto;
+}
+
+.map-legend h4 {
+    margin: 0 0 5px 0;
+    color: #e94560;
+    font-size: 0.9em;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 3px;
+}
+
+.legend-icon {
+    width: 10px;
+    height: 10px;
+    margin-right: 5px;
+    border-radius: 50%;
+}
+
+.player-icon {
+    background-color: #e94560;
+}
+
+.house-icon {
+    background-color: #4ecdc4;
+}
+
+.neighbor-icon {
+    background-color: #ffe66d;
+}
+
+.item-icon {
+    background-color: #ff6b6b;
+}
+
+/* Map elements */
+.map-element {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    transition: all 0.2s ease;
+}
+
+.map-player {
+    width: 10px;
+    height: 10px;
+    background-color: #e94560;
+    border-radius: 50%;
+    z-index: 10;
+    box-shadow: 0 0 5px rgba(233, 69, 96, 0.7);
+}
+
+.map-house {
+    width: 12px;
+    height: 12px;
+    background-color: #4ecdc4;
+    border-radius: 2px;
+}
+
+.map-neighbor {
+    width: 8px;
+    height: 8px;
+    background-color: #ffe66d;
+    border-radius: 50%;
+}
+
+.map-item {
+    width: 6px;
+    height: 6px;
+    background-color: #ff6b6b;
+    border-radius: 50%;
+}
+
+.map-investigation {
+    width: 14px;
+    height: 14px;
+    background-color: rgba(155, 89, 182, 0.7);
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: translate(-50%, -50%) scale(1); opacity: 0.7; }
+    50% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+    100% { transform: translate(-50%, -50%) scale(1); opacity: 0.7; }
+}
+
+/* Map tab in notebook */
+#mapContainer {
+    width: 100%;
+    height: 300px;
+    background-color: #272741;
+    position: relative;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+#mapContainer .map-location {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+#mapContainer .map-location:hover {
+    transform: translate(-50%, -50%) scale(1.2);
+}
+
+#mapContainer .location-discovered {
+    background-color: #4ecdc4;
+}
+
+#mapContainer .location-undiscovered {
+    background-color: #535379;
+}
+
+#mapContainer .location-highlighted {
+    box-shadow: 0 0 10px #e94560;
+    background-color: #e94560;
+    z-index: 10;
+}
+
+.location-tooltip {
+    position: absolute;
+    background-color: #1a1a2e;
+    border: 1px solid #e94560;
+    padding: 5px 10px;
+    border-radius: 4px;
+    color: #fff;
+    font-size: 0.8em;
+    pointer-events: none;
+    z-index: 100;
+    white-space: nowrap;
+} 

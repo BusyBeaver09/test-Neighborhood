@@ -1,3 +1,215 @@
+/* Import specific feature CSS */
+@import url('dialogue-system.css');
+@import url('notebook-system.css');
+@import url('photo-system.css');
+@import url('map-system.css');
+@import url('ambient-effects.css');
+@import url('relationship-system.css');
+
+/* Base Game Styles - Pixel Art Aesthetic */
+:root {
+    --main-bg-color: #0f0f1b;
+    --main-text-color: #ffffff;
+    --accent-color: #e94560;
+    --secondary-color: #4ecdc4;
+    --tertiary-color: #ffe66d;
+    --dark-accent: #272741;
+    --pixel-size: 4px;
+    font-family: 'Courier New', monospace;
+    font-smooth: never;
+    -webkit-font-smoothing: none;
+}
+
+body {
+    background-color: var(--main-bg-color);
+    color: var(--main-text-color);
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    font-family: 'Courier New', monospace;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+}
+
+.game-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    max-width: 1200px;
+    margin: 0 auto;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+    background-color: var(--main-bg-color);
+}
+
+.game-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px;
+    background-color: var(--dark-accent);
+    border-bottom: 2px solid var(--accent-color);
+    z-index: 5;
+}
+
+.game-header h1 {
+    margin: 0;
+    color: var(--accent-color);
+    font-size: 1.5rem;
+    text-shadow: 2px 2px 0px rgba(0, 0, 0, 0.5);
+    font-family: 'Courier New', monospace;
+    letter-spacing: 2px;
+}
+
+.game-stats {
+    display: flex;
+    gap: 20px;
+}
+
+.time-container, .trust-container {
+    background-color: rgba(39, 39, 65, 0.7);
+    padding: 5px 10px;
+    border-radius: 4px;
+    border: 1px solid var(--accent-color);
+}
+
+.game-content {
+    display: flex;
+    flex: 1;
+    position: relative;
+}
+
+.game-board {
+    flex: 1;
+    position: relative;
+    background-color: #1a1a2e;
+    overflow: hidden;
+    image-rendering: pixelated;
+}
+
+/* Character styles */
+.character {
+    position: absolute;
+    width: 32px;
+    height: 48px;
+    background-repeat: no-repeat;
+    background-size: cover;
+    z-index: 5;
+    transition: transform 0.1s ease;
+    image-rendering: pixelated;
+}
+
+.player {
+    background-image: url('../assets/characters/player.png');
+    z-index: 10;
+}
+
+.neighbor {
+    z-index: 8;
+}
+
+/* House styles */
+.house {
+    position: absolute;
+    width: 96px;
+    height: 96px;
+    background-size: contain;
+    background-repeat: no-repeat;
+    z-index: 3;
+    image-rendering: pixelated;
+}
+
+/* Item styles */
+.item {
+    position: absolute;
+    width: 24px;
+    height: 24px;
+    background-size: contain;
+    background-repeat: no-repeat;
+    z-index: 4;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+    image-rendering: pixelated;
+}
+
+.item:hover {
+    transform: scale(1.1);
+    filter: brightness(1.2);
+}
+
+.item.clue {
+    border: 2px solid transparent;
+    animation: pulseBorder 2s infinite;
+}
+
+@keyframes pulseBorder {
+    0% { border-color: rgba(233, 69, 96, 0); }
+    50% { border-color: rgba(233, 69, 96, 0.7); }
+    100% { border-color: rgba(233, 69, 96, 0); }
+}
+
+/* Controls UI */
+.controls {
+    position: relative;
+    background-color: #1a1a2e;
+    border-top: 2px solid var(--accent-color);
+    padding: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    z-index: 5;
+}
+
+/* Game UI buttons */
+button {
+    background-color: var(--accent-color);
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: 'Courier New', monospace;
+    transition: background-color 0.3s ease;
+    margin: 5px;
+}
+
+button:hover {
+    background-color: #c73550;
+}
+
+button:disabled {
+    background-color: #6d6d6d;
+    cursor: not-allowed;
+}
+
+/* Pixel art filter for images */
+.pixel-art {
+    image-rendering: pixelated;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: crisp-edges;
+}
+
+/* Game tiles and environment */
+.tile {
+    position: absolute;
+    width: 32px;
+    height: 32px;
+    background-size: cover;
+    z-index: 1;
+    image-rendering: pixelated;
+}
+
+.walkable-area {
+    background-color: rgba(0, 255, 0, 0.1);
+    z-index: 0;
+}
+
+.obstacle {
+    background-color: rgba(255, 0, 0, 0.1);
+    z-index: 2;
+}
+
 * {
     margin: 0;
     padding: 0;
@@ -14,16 +226,6 @@ body {
     color: #ecf0f1;
     background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="100" height="100" fill="%231a1a2e"/><path d="M0,0 L100,0 L100,100 L0,100 Z" fill="none" stroke="%232c3e50" stroke-width="1"/></svg>');
     background-size: 20px 20px;
-}
-
-.game-container {
-    background-color: #16213e;
-    border-radius: 10px;
-    box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
-    padding: 20px;
-    width: 1000px;
-    position: relative;
-    overflow: hidden;
 }
 
 .game-container::before {

@@ -1,0 +1,304 @@
+/**
+ * relationship-system.css - Styles for the trust and relationship system
+ */
+
+/* Relationship container in notebook */
+.relationships-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 10px;
+    max-height: 100%;
+    overflow-y: auto;
+}
+
+/* Character relationship card */
+.character-relationship-card {
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 5px;
+    padding: 15px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    border-left: 4px solid transparent;
+}
+
+.character-relationship-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Card header with character name and trust tier */
+.relationship-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: 10px;
+}
+
+.relationship-header h3 {
+    margin: 0;
+    color: #ecf0f1;
+    font-size: 18px;
+}
+
+/* Trust tier indicator */
+.relationship-tier {
+    padding: 3px 8px;
+    border-radius: 3px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+/* Trust tier colors */
+.tier-suspicious {
+    background-color: #e74c3c;
+    color: #fff;
+}
+
+.tier-cautious {
+    background-color: #f39c12;
+    color: #fff;
+}
+
+.tier-confiding {
+    background-color: #2ecc71;
+    color: #fff;
+}
+
+.tier-vulnerable {
+    background-color: #3498db;
+    color: #fff;
+}
+
+/* Trust progress bar */
+.trust-bar-container {
+    margin: 15px 0;
+}
+
+.trust-value {
+    display: block;
+    margin-bottom: 5px;
+    color: #bdc3c7;
+    font-size: 14px;
+}
+
+.progress-bar-background {
+    height: 8px;
+    background-color: rgba(0, 0, 0, 0.4);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.progress-bar {
+    height: 100%;
+    width: 0%;
+    transition: width 0.5s ease, background-color 0.5s ease;
+}
+
+/* Trust tier progress bar colors */
+.progress-bar.tier-suspicious {
+    background-color: #c0392b;
+}
+
+.progress-bar.tier-cautious {
+    background-color: #d35400;
+}
+
+.progress-bar.tier-confiding {
+    background-color: #27ae60;
+}
+
+.progress-bar.tier-vulnerable {
+    background-color: #2980b9;
+}
+
+/* Character card border colors by trust tier */
+.character-relationship-card[data-tier="suspicious"] {
+    border-left-color: #e74c3c;
+}
+
+.character-relationship-card[data-tier="cautious"] {
+    border-left-color: #f39c12;
+}
+
+.character-relationship-card[data-tier="confiding"] {
+    border-left-color: #2ecc71;
+}
+
+.character-relationship-card[data-tier="vulnerable"] {
+    border-left-color: #3498db;
+}
+
+/* Personality box */
+.personality-box {
+    background-color: rgba(44, 62, 80, 0.5);
+    padding: 10px;
+    border-radius: 4px;
+    font-size: 13px;
+    color: #bdc3c7;
+    font-style: italic;
+    margin-bottom: 15px;
+}
+
+/* Character notes section */
+.character-notes-container {
+    margin-top: 15px;
+}
+
+.character-notes-container h4 {
+    margin: 0 0 10px 0;
+    color: #ecf0f1;
+    font-size: 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: 5px;
+}
+
+.character-notes-list {
+    list-style-type: none;
+    padding: 0;
+    margin: 0 0 15px 0;
+    max-height: 150px;
+    overflow-y: auto;
+}
+
+.character-notes-list li {
+    padding: 5px 0;
+    border-bottom: 1px dotted rgba(255, 255, 255, 0.1);
+    font-size: 13px;
+    color: #ecf0f1;
+}
+
+.note-time {
+    color: #95a5a6;
+    font-size: 11px;
+}
+
+/* Add note form */
+.add-note-form {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.note-input {
+    background-color: rgba(44, 62, 80, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    padding: 8px;
+    color: #ecf0f1;
+    resize: vertical;
+    min-height: 50px;
+    font-family: inherit;
+}
+
+.add-note-button {
+    background-color: #3498db;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    padding: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.2s ease;
+}
+
+.add-note-button:hover {
+    background-color: #2980b9;
+}
+
+/* Trust change notification */
+.trust-change-notification {
+    position: fixed;
+    top: 60px;
+    right: 10px;
+    background-color: rgba(0, 0, 0, 0.7);
+    color: #fff;
+    padding: 10px 15px;
+    border-radius: 4px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    z-index: 1000;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    transform: translateX(100%);
+    opacity: 0;
+}
+
+.trust-change-notification.show {
+    transform: translateX(0);
+    opacity: 1;
+}
+
+.trust-change-notification.positive {
+    border-left: 4px solid #2ecc71;
+}
+
+.trust-change-notification.negative {
+    border-left: 4px solid #e74c3c;
+}
+
+.trust-change-notification.tier-change {
+    border-left: 4px solid #3498db;
+}
+
+/* Character portrait trust indicators */
+.character-portrait::after {
+    content: "";
+    position: absolute;
+    bottom: -2px;
+    right: -2px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 2px solid #fff;
+}
+
+.character-portrait.trust-suspicious::after {
+    background-color: #e74c3c;
+}
+
+.character-portrait.trust-cautious::after {
+    background-color: #f39c12;
+}
+
+.character-portrait.trust-confiding::after {
+    background-color: #2ecc71;
+}
+
+.character-portrait.trust-vulnerable::after {
+    background-color: #3498db;
+}
+
+/* Animation for trust changes */
+@keyframes trustPulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+.trust-change {
+    animation: trustPulse 0.5s ease;
+}
+
+/* Dialog option trust requirements */
+.dialog-option[data-requires-trust] {
+    position: relative;
+}
+
+.dialog-option[data-requires-trust]::after {
+    content: attr(data-requires-trust);
+    position: absolute;
+    right: 5px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 10px;
+    background-color: rgba(0, 0, 0, 0.6);
+    padding: 2px 5px;
+    border-radius: 3px;
+    color: #ecf0f1;
+}
+
+.dialog-option.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+} 

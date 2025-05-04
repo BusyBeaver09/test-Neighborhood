@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiet Hollow - Advanced Photo System Demo</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="../css/photo-system.css">
+    <style>
+        body {
+            background-color: #16213e;
+            color: #e6e6e6;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        h1 {
+            color: #4cc9f0;
+            margin-bottom: 10px;
+        }
+        
+        .description {
+            max-width: 800px;
+            margin: 0 auto 30px;
+            line-height: 1.5;
+        }
+        
+        .demo-section {
+            background-color: #0f3460;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .demo-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 1px solid rgba(76, 201, 240, 0.3);
+            padding-bottom: 10px;
+        }
+        
+        .demo-title {
+            color: #4cc9f0;
+            margin: 0;
+        }
+        
+        .feature-list {
+            list-style-type: none;
+            padding: 0;
+            margin-bottom: 30px;
+        }
+        
+        .feature-list li {
+            margin-bottom: 10px;
+            position: relative;
+            padding-left: 25px;
+        }
+        
+        .feature-list li:before {
+            content: "✓";
+            color: #4cc9f0;
+            position: absolute;
+            left: 0;
+            top: 0;
+        }
+        
+        .demo-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        button {
+            background-color: #4cc9f0;
+            color: #0f3460;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: #3db1d8;
+        }
+        
+        .notebook {
+            height: 500px;
+        }
+        
+        .notebook-content {
+            height: 400px;
+        }
+        
+        #photosGrid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 15px;
+        }
+        
+        .scenario-setup {
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        
+        .scenario-title {
+            font-weight: bold;
+            color: #ffde7d;
+            margin-top: 0;
+            margin-bottom: 10px;
+        }
+        
+        .scenario-description {
+            margin-bottom: 15px;
+        }
+        
+        .status-message {
+            background-color: rgba(76, 201, 240, 0.1);
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 20px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Quiet Hollow: Advanced Photo System</h1>
+            <p class="description">
+                This demo showcases the enhanced photo-based gameplay system implemented for "Quiet Hollow: The Vanishing of Iris Bell." 
+                The system adds depth to investigation through photographic evidence, composition mechanics, and narrative integration.
+            </p>
+        </header>
+        
+        <div class="demo-section">
+            <div class="demo-header">
+                <h2 class="demo-title">Key Features</h2>
+            </div>
+            
+            <ul class="feature-list">
+                <li><strong>Timestamped Evidence</strong> - Photos automatically record the exact in-game time they were taken</li>
+                <li><strong>Photo Grading System</strong> - Photos are scored based on composition, timing, and subject relevance</li>
+                <li><strong>Evidence Detection</strong> - Well-composed photos can reveal hidden clues and contradictions</li>
+                <li><strong>Darkroom Development</strong> - Optional mechanic where photos must be developed to fully reveal details</li>
+                <li><strong>Photo Tags & Filtering</strong> - Organize and search photos by location, time, quality, and more</li>
+                <li><strong>Supernatural Glitch Effects</strong> - Some photos may capture unexplainable phenomena</li>
+                <li><strong>Contradiction System</strong> - Use photos as evidence to challenge character statements</li>
+            </ul>
+            
+            <div class="scenario-setup">
+                <h3 class="scenario-title">Scenario: The Flickering Light</h3>
+                <p class="scenario-description">
+                    Mrs. Finch claims she hasn't been in her basement for weeks, but neighbors report seeing 
+                    unusual flickering lights at night. Take photos at different times of day to gather evidence.
+                </p>
+                <div class="demo-controls">
+                    <button id="setMorningBtn">Set to Morning</button>
+                    <button id="setAfternoonBtn">Set to Afternoon</button>
+                    <button id="setEveningBtn">Set to Evening</button>
+                    <button id="setNightBtn">Set to Night</button>
+                    <button id="takePhotoBtn">Take Photo</button>
+                    <button id="openDarkroomBtn">Open Darkroom</button>
+                </div>
+                <div id="statusMessage" class="status-message">
+                    Current time: Morning
+                </div>
+            </div>
+        </div>
+        
+        <div class="demo-section">
+            <div class="demo-header">
+                <h2 class="demo-title">Photo Gallery</h2>
+            </div>
+            
+            <div class="notebook">
+                <div class="notebook-tabs">
+                    <button class="tab active" data-tab="photos">Photos</button>
+                    <button class="tab" data-tab="clues">Clues</button>
+                    <button class="tab" data-tab="notes">Notes</button>
+                </div>
+                <div class="notebook-content">
+                    <div id="photosGrid" class="tab-content active">
+                        <!-- Photos will be dynamically added here -->
+                        <div class="no-photos">
+                            Take photos to build your evidence collection.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Game script (simplified for demo) -->
+    <script>
+        // Simplified game object for demo purposes
+        class DemoGame {
+            constructor() {
+                this.photoDetails = [];
+                this.photos = [];
+                this.timeOfDay = 'morning';
+                this.foundClues = new Set();
+                this.trust = 50;
+                
+                // DOM elements
+                this.photosGrid = document.getElementById('photosGrid');
+                
+                // Initialize
+                this.setupEventListeners();
+            }
+            
+            setupEventListeners() {
+                document.getElementById('setMorningBtn').addEventListener('click', () => this.setTimeOfDay('morning'));
+                document.getElementById('setAfternoonBtn').addEventListener('click', () => this.setTimeOfDay('afternoon'));
+                document.getElementById('setEveningBtn').addEventListener('click', () => this.setTimeOfDay('evening'));
+                document.getElementById('setNightBtn').addEventListener('click', () => this.setTimeOfDay('night'));
+                document.getElementById('takePhotoBtn').addEventListener('click', () => this.takePhoto());
+                document.getElementById('openDarkroomBtn').addEventListener('click', () => {
+                    if (window.photoSystem && window.photoSystem.photoUI) {
+                        window.photoSystem.photoUI.openDarkroom();
+                    }
+                });
+            }
+            
+            setTimeOfDay(time) {
+                this.timeOfDay = time;
+                document.getElementById('statusMessage').textContent = `Current time: ${time.charAt(0).toUpperCase() + time.slice(1)}`;
+                document.body.className = time;
+            }
+            
+            takePhoto() {
+                // Generate a photo context based on current time and scenario
+                const context = this.generatePhotoContext();
+                this.photoDetails.push(context);
+                
+                // Basic photo creation (will be enhanced by our system)
+                const photo = document.createElement('div');
+                photo.className = 'photo';
+                this.photos.push(photo);
+                
+                // This notification will be replaced by the enhanced system
+                this.showNotification('Photo taken');
+            }
+            
+            generatePhotoContext() {
+                // Simulate different contexts based on time of day
+                const context = {
+                    position: { x: 150, y: 150 },
+                    timeOfDay: this.timeOfDay,
+                    nearbyElements: [{ type: 'house', index: 0 }],
+                    id: `photo_${Date.now()}`
+                };
+                
+                // Determine photo type based on time
+                if (this.timeOfDay === 'night') {
+                    context.type = 'flickerPhoto';
+                } else {
+                    context.type = 'generic';
+                }
+                
+                return context;
+            }
+            
+            showNotification(message) {
+                const status = document.getElementById('statusMessage');
+                status.textContent = message;
+                
+                // Restore after a delay
+                setTimeout(() => {
+                    status.textContent = `Current time: ${this.timeOfDay.charAt(0).toUpperCase() + this.timeOfDay.slice(1)}`;
+                }, 3000);
+            }
+            
+            // Helper methods to integrate with the enhanced photo system
+            playSoundEffect(sound) {
+                console.log(`Playing sound: ${sound}`);
+            }
+            
+            updateTrust(amount) {
+                this.trust += amount;
+                console.log(`Trust updated to ${this.trust}`);
+            }
+            
+            addClueToNotebook(clue) {
+                console.log(`Added clue: ${clue}`);
+            }
+            
+            autoTagClue(clue, tags) {
+                console.log(`Tagged clue with: ${tags.join(', ')}`);
+            }
+            
+            // Placeholder methods required by the photo system
+            examinePhoto() {}
+            analyzePhoto() {}
+            checkPhotoRequirement() { return false; }
+        }
+        
+        // Initialize demo game when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            window.game = new DemoGame();
+        });
+    </script>
+    
+    <!-- Include the advanced photo system -->
+    <script src="../js/PhotoManager.js"></script>
+    <script src="../js/PhotoUI.js"></script>
+    <script src="../js/PhotoSystemIntegration.js"></script>
+</body>
+</html> 

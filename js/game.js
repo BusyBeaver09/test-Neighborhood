@@ -19,265 +19,38 @@ const WEATHER_EFFECTS = ['clear', 'fog', 'rain', 'storm'];
 
 class Game {
     constructor() {
-        this.gameBoard = document.getElementById('gameBoard');
-        this.startButton = document.getElementById('startGame');
-        this.takePhotoButton = document.getElementById('takePhoto');
-        this.timeElement = document.getElementById('time');
-        this.trustElement = document.getElementById('trust');
-        this.cluesList = document.getElementById('cluesList');
-        this.photosGrid = document.getElementById('photosGrid');
-        this.notesArea = document.getElementById('notesArea');
-        this.player = null;
-        this.items = [];
-        this.neighbors = [];
-        this.houses = [];
-        this.trust = 0;
-        this.isGameRunning = false;
-        this.playerSpeed = 5;
-        this.itemCount = 5;
-        this.neighborCount = 3;
-        this.houseCount = 4;
-        this.time = 360; // 6:00 AM in minutes
-        this.photos = [];
-        this.photoDetails = [];
-        
-        // Updated clues for "The Vanishing of Iris Bell" narrative
-        this.clues = [
-            {
-                text: "Iris Bell disappeared six months ago",
-                trustRequired: 0,
-                time: "morning",
-                connections: ["Mrs. Finch mentions 'poor Iris' but doesn't elaborate"]
-            },
-            {
-                text: "Mrs. Finch mentions 'poor Iris' but doesn't elaborate",
-                trustRequired: 0,
-                time: "morning",
-                connections: ["Iris Bell disappeared six months ago"]
-            },
-            {
-                text: "Jake and Lila claim Iris 'left town'",
-                trustRequired: 10,
-                time: "afternoon",
-                connections: ["Photo of Iris in the park dated after her reported disappearance"]
-            },
-            {
-                text: "Photo of Iris in the park dated after her reported disappearance",
-                trustRequired: 15,
-                time: "afternoon",
-                connections: ["Jake and Lila claim Iris 'left town'"]
-            },
-            {
-                text: "Mr. Arnold says he saw Iris 'that night' but later changes his story",
-                trustRequired: 20,
-                time: "evening",
-                connections: ["Mrs. Finch saw Iris talking to someone late at night, but 'there was no one there'"]
-            },
-            {
-                text: "Camille draws shadow figures, says 'Iris used to talk to them'",
-                trustRequired: 25,
-                time: "afternoon",
-                connections: ["Mrs. Finch saw Iris talking to someone late at night, but 'there was no one there'"]
-            },
-            {
-                text: "Found a pendant half-buried near the old well",
-                trustRequired: 30,
-                time: "evening",
-                connections: ["Photo shows Iris's pendant worn by someone else now"]
-            },
-            {
-                text: "House lights flicker oddly at night - whispers and footsteps heard",
-                trustRequired: 35,
-                time: "night",
-                connections: ["Shadowy figure appears at midnight at the abandoned house"]
-            },
-            {
-                text: "Mrs. Finch saw Iris talking to someone late at night, but 'there was no one there'",
-                trustRequired: 40,
-                time: "evening",
-                connections: ["Mr. Arnold says he saw Iris 'that night' but later changes his story", "Camille draws shadow figures, says 'Iris used to talk to them'"]
-            },
-            {
-                text: "Found torn journal page in Iris's room with strange drawings",
-                trustRequired: 45,
-                time: "night",
-                connections: ["Drawing labeled 'Wednesday' but dated on Tuesday"]
-            },
-            {
-                text: "Drawing labeled 'Wednesday' but dated on Tuesday",
-                trustRequired: 50,
-                time: "night",
-                connections: ["Found torn journal page in Iris's room with strange drawings"]
-            },
-            {
-                text: "Photo shows Iris's pendant worn by someone else now",
-                trustRequired: 55,
-                time: "evening",
-                connections: ["Found a pendant half-buried near the old well"]
-            },
-            {
-                text: "Shadowy figure appears at midnight at the abandoned house",
-                trustRequired: 60,
-                time: "night",
-                connections: ["House lights flicker oddly at night - whispers and footsteps heard"]
-            },
-            {
-                text: "A neighbor's note: 'If she's back, we'll all pay.'",
-                trustRequired: 65,
-                time: "night",
-                connections: ["Photo of neighbors talking to Iris - timestamped after they claimed she vanished"]
-            },
-            {
-                text: "Photo of neighbors talking to Iris - timestamped after they claimed she vanished",
-                trustRequired: 70,
-                time: "night",
-                connections: ["A neighbor's note: 'If she's back, we'll all pay.'"]
-            }
-        ];
-        
+        // Core game state
+        this.playerPosition = { x: 400, y: 300 };
+        this.inventory = new Set();
         this.foundClues = new Set();
-        this.timeOfDay = "morning"; // Change from currentTimeOfDay to timeOfDay for consistency
+        this.photos = [];
+        this.discoveredLocations = new Set();
+        this.flags = {};
+        this.gameVersion = "1.0.0";
         
-        // Initialize DialogueManager
-        this.dialogueManager = new DialogueManager(this);
-
-        // Initialize PuzzleManager
-        this.puzzleManager = null; // Will be initialized after loading puzzle data
-        
-        // Initialize MapManager
+        // Systems initialization
+        this.timeManager = new TimeManager(this);
+        this.eventScheduler = new EventScheduler(this);
         this.mapManager = new MapManager(this);
+        this.puzzleManager = new PuzzleManager(this);
+        this.relationshipManager = new RelationshipManager(this);
+        this.endingManager = new EndingManager(this);
+        this.companionSystem = null;  // Add this line
         
-        // Audio elements
-        this.bgMusic = document.getElementById('bgMusic');
-        this.soundEffect = document.getElementById('soundEffect');
-        this.audioMuted = false;
-
-        this.startButton.addEventListener('click', () => this.startGame());
-        this.takePhotoButton.addEventListener('click', () => this.takePhoto());
-        this.setupNotebookTabs();
-        this.setupEventListeners();
-        this.setupDialogSystem();
-        this.setupAudioControls();
-        this.setupPuzzleSystem();
+        // Final player theory
+        this.finalTheory = null;
         
-        this.clueConnections = new Map(); // Track connections between clues
-        this.savedGames = []; // For save/load functionality
-
-        // Add Save/Load buttons to controls
-        const controlsDiv = document.querySelector('.controls');
+        // Frame counter for animation and timing
+        this.frameCount = 0;
+        this.lastUpdateTime = Date.now();
         
-        const saveBtn = document.createElement('button');
-        saveBtn.id = 'saveGame';
-        saveBtn.textContent = 'Save Game';
-        saveBtn.addEventListener('click', () => this.saveGame());
+        // UI elements
+        this.player = null;
+        this.trustElement = null;
+        this.notesArea = null;
         
-        const loadBtn = document.createElement('button');
-        loadBtn.id = 'loadGame';
-        loadBtn.textContent = 'Load Game';
-        loadBtn.addEventListener('click', () => this.showLoadGameMenu());
-        
-        controlsDiv.insertBefore(saveBtn, document.getElementById('takePhoto').nextSibling);
-        controlsDiv.insertBefore(loadBtn, saveBtn.nextSibling);
-        
-        // Load any saved games
-        this.loadSavedGames();
-
-        // Update events to match "The Vanishing of Iris Bell" narrative
-        this.events = [
-            {
-                id: "iris_photo",
-                triggered: false,
-                location: { x: 400, y: 300 }, // Near the park
-                timeOfDay: "afternoon",
-                trustRequired: 15,
-                radius: 80,
-                message: "While exploring the park, you notice something half-buried under a bush. It's an old photo of Iris standing right here, smiling. The timestamp on the back says it was taken two days AFTER she was reported missing...",
-                clue: "Photo of Iris in the park dated after her reported disappearance"
-            },
-            {
-                id: "pendant_discovery",
-                triggered: false,
-                location: { x: 400, y: 300 }, // Near the well in the park
-                timeOfDay: "evening",
-                trustRequired: 30,
-                radius: 80,
-                message: "As you approach the old well, something glints in the fading light. You reach down and find a pendant half-buried in the dirt. It looks like the one Iris was wearing in her photos.",
-                clue: "Found a pendant half-buried near the old well"
-            },
-            {
-                id: "night_whispers",
-                triggered: false,
-                location: { x: 700, y: 100 }, // Near abandoned house/Iris's house
-                timeOfDay: "night",
-                trustRequired: 35,
-                radius: 120,
-                message: "As you stand near the house, the lights inside flicker strangely. For a moment, you think you hear whispers and footsteps, but when you look around, no one is there.",
-                clue: "House lights flicker oddly at night - whispers and footsteps heard"
-            },
-            {
-                id: "journal_page",
-                triggered: false,
-                location: { x: 700, y: 100 }, // Inside Iris's house/room
-                timeOfDay: "night",
-                trustRequired: 45,
-                radius: 80,
-                message: "You've managed to enter Iris's old room. Among the dusty belongings, you find a torn journal page with strange, unsettling drawings and symbols that make little sense.",
-                clue: "Found torn journal page in Iris's room with strange drawings"
-            },
-            {
-                id: "shadow_figure",
-                triggered: false,
-                location: { x: 700, y: 100 }, // At abandoned house
-                timeOfDay: "night",
-                trustRequired: 60,
-                radius: 100,
-                message: "As the clock strikes midnight, you see a shadowy figure standing in the upstairs window of the abandoned house. When you blink, it's gone. This would make a perfect photo opportunity.",
-                clue: "Shadowy figure appears at midnight at the abandoned house",
-                sanityImpact: -10
-            },
-            {
-                id: "hidden_note",
-                triggered: false,
-                location: { x: 300, y: 150 }, // Near Jake & Lila's house
-                timeOfDay: "night",
-                trustRequired: 65,
-                radius: 100,
-                message: "While passing near Jake and Lila's house, you notice a crumpled paper that seems to have fallen from their trash. Unfolding it reveals a hastily written note: 'If she's back, we'll all pay.'",
-                clue: "A neighbor's note: 'If she's back, we'll all pay.'"
-            }
-        ];
-
-        // Initialize random events
-        this.randomEvents = [
-            {
-                id: 'fireflies',
-                probability: 0.1, // 10% chance
-                timeOfDay: ['evening', 'night'],
-                action: () => this.createRandomAmbientEffect('firefly', 5)
-            },
-            {
-                id: 'cat',
-                probability: 0.05, // 5% chance
-                timeOfDay: ['morning', 'afternoon', 'evening'],
-                action: () => this.createCat()
-            },
-            {
-                id: 'light_flicker',
-                probability: 0.15, // 15% chance
-                timeOfDay: ['night'],
-                location: { near: 'house', distance: 150 },
-                action: () => this.flickerNearbyLight()
-            },
-            {
-                id: 'strange_sound',
-                probability: 0.1, // 10% chance
-                timeOfDay: ['night'],
-                action: () => this.playRandomAmbientSound()
-            }
-        ];
-        
-        this.lastRandomEvent = 0; // Time tracker for random events
-        this.randomEventCooldown = 60000; // 1 minute cooldown between random events
+        // Initialize game elements
+        this.initGame();
     }
     
     // New method to set up the puzzle system
@@ -584,7 +357,7 @@ class Game {
         // Different music for different times of day
         let musicSource = '';
         
-        switch(this.timeOfDay) {
+        switch(this.timeManager.timeOfDay) {
             case 'morning':
                 musicSource = 'data:audio/mpeg;base64,SUQzBAAAAAAAI1RJVDIAAAAZAAAAbW9ybmluZ19tdXNpY19wbGFjZWhvbGRlcgA=';
                 break;
@@ -658,83 +431,396 @@ class Game {
     }
 
     startGame() {
+        if (this.isGameRunning) return;
+        
         this.resetGame();
         this.createPlayer();
         this.createHouses();
         this.createNeighbors();
         this.createItems();
-        this.createInvestigationSpots(); // Add investigation spots
-        this.updateMap();
+        
+        // Create the world lighting overlay for time effects
+        this.createWorldLighting();
+        
+        document.addEventListener('keydown', this.handleKeyPress.bind(this));
+        
         this.isGameRunning = true;
         this.startButton.disabled = true;
         this.takePhotoButton.disabled = false;
-        this.startTimeLoop();
-        this.updateTimeOfDay();
+        
+        // Start the time loop using the TimeManager
+        this.timeManager.startTimeLoop();
+        
+        // Play background music
         this.playBackgroundMusic();
         
-        // Load the map-enhancements.css file if not already loaded
-        if (!document.getElementById('map-enhancements-css')) {
-            const mapCssLink = document.createElement('link');
-            mapCssLink.id = 'map-enhancements-css';
-            mapCssLink.rel = 'stylesheet';
-            mapCssLink.href = 'map-enhancements.css';
-            document.head.appendChild(mapCssLink);
-        }
+        // Create weather effects
+        this.createWeatherEffects();
+        
+        // Create mysterious effects
+        this.createMysteriousEffects();
+        
+        // Setup end game option
+        this.setupEndGameOption();
+        
+        // Add initial notebook entry for game start
+        this.eventScheduler.addTimelineEntry({
+            description: "Investigation started",
+            type: "event",
+            addToLog: true
+        });
+        
+        // Show initial notification
+        this.showNotification("Your investigation begins at Maplewood Lane...");
     }
-
+    
     resetGame() {
         this.gameBoard.innerHTML = '';
-        this.trust = 0;
-        this.trustElement.textContent = this.trust;
-        this.time = 360;
-        this.updateTimeDisplay();
+        this.player = null;
         this.items = [];
         this.neighbors = [];
         this.houses = [];
-        this.foundClues.clear();
-        this.clueConnections.clear();
-        this.cluesList.innerHTML = '';
-        this.photosGrid.innerHTML = '';
-        this.notesArea.value = '';
+        this.trust = 0;
+        this.trustElement.textContent = this.trust;
+        this.isGameRunning = false;
+        
+        // Reset time to 6:00 AM
+        this.timeManager.time = 360;
+        this.timeManager.dayCount = 1;
+        this.timeManager.updateTimeDisplay();
+        this.timeManager.updateTimeOfDay();
+        this.timeOfDay = this.timeManager.timeOfDay;
+        
+        // Reset events and timeline
+        this.eventTimeline = [];
+        this.eventScheduler.eventTimeline = [];
+        
+        // Reset clues and photos
+        this.foundClues = new Set();
         this.photos = [];
         this.photoDetails = [];
-        this.updateTimeOfDay();
-        this.minimap.innerHTML = '';
-        this.fullMap.innerHTML = '';
-        this.mapElements = {
-            player: null,
-            houses: [],
-            neighbors: [],
-            items: []
+        
+        // Clear intervals
+        if (this.timeManager.timeInterval) {
+            clearInterval(this.timeManager.timeInterval);
+        }
+        
+        // Reset UI displays
+        this.updateCluesDisplay();
+    }
+    
+    // Create world lighting overlay for time-based ambient effects
+    createWorldLighting() {
+        const lighting = document.createElement('div');
+        lighting.className = `world-lighting ${this.timeManager.timeOfDay}`;
+        lighting.id = 'worldLighting';
+        this.gameBoard.appendChild(lighting);
+    }
+    
+    // Update world lighting based on time of day
+    updateWorldLighting() {
+        const lighting = document.getElementById('worldLighting');
+        if (lighting) {
+            lighting.className = `world-lighting ${this.timeManager.timeOfDay}`;
+        }
+    }
+    
+    // Handle key press events 
+    handleKeyPress(e) {
+        if (!this.isGameRunning || !this.player) return;
+        
+        const playerRect = this.player.getBoundingClientRect();
+        
+        let newX = parseInt(this.player.style.left) || 0;
+        let newY = parseInt(this.player.style.top) || 0;
+        
+        // Movement keys
+        switch(e.key) {
+            case 'ArrowLeft':
+            case 'a':
+            case 'A':
+                newX -= this.playerSpeed;
+                break;
+            case 'ArrowRight':
+            case 'd':
+            case 'D':
+                newX += this.playerSpeed;
+                break;
+            case 'ArrowUp':
+            case 'w':
+            case 'W':
+                newY -= this.playerSpeed;
+                break;
+            case 'ArrowDown':
+            case 's':
+            case 'S':
+                newY += this.playerSpeed;
+                break;
+            // Time control keys
+            case '+':
+                // Speed up time
+                this.timeManager.setTimeScale(this.timeManager.timeScale + 1);
+                return;
+            case '-':
+                // Slow down time (minimum 1x)
+                if (this.timeManager.timeScale > 1) {
+                    this.timeManager.setTimeScale(this.timeManager.timeScale - 1);
+                }
+                return;
+            case 'p':
+            case 'P':
+                // Pause/unpause time
+                this.timeManager.togglePause();
+                return;
+            case 't':
+            case 'T':
+                // Skip ahead 1 hour
+                this.timeManager.advanceTime(60);
+                return;
+        }
+        
+        // Boundary checks
+        if (newX < 0) newX = 0;
+        if (newY < 0) newY = 0;
+        if (newX > this.gameBoard.clientWidth - playerRect.width) {
+            newX = this.gameBoard.clientWidth - playerRect.width;
+        }
+        if (newY > this.gameBoard.clientHeight - playerRect.height) {
+            newY = this.gameBoard.clientHeight - playerRect.height;
+        }
+        
+        this.player.style.left = `${newX}px`;
+        this.player.style.top = `${newY}px`;
+        
+        // Check for collisions after movement
+        this.checkCollisions();
+        
+        // Update map
+        this.mapManager.updatePlayerPosition();
+        
+        // Check for events near player
+        this.throttledCheckEvents();
+    }
+    
+    // Trigger a time loop reset (if day loop mechanic is enabled)
+    triggerTimeLoopReset() {
+        this.showNotification(`Day ${this.timeManager.dayCount} - Time is looping...`, 10000);
+        
+        // Store trust value across loops
+        const previousTrust = this.trust;
+        
+        // Store clues across loops
+        const previousClues = new Set(this.foundClues);
+        
+        // Store any items that should persist across loops
+        const persistentItems = [];
+        
+        // Add "deja vu" effect
+        this.addDejaVuEffect();
+        
+        // Reset game state but maintain some progress
+        this.resetGame();
+        
+        // Apply saved progress
+        this.trust = previousTrust + 5; // Bonus for completing a loop
+        this.trustElement.textContent = this.trust;
+        
+        // Restore clues
+        previousClues.forEach(clue => {
+            this.foundClues.add(clue);
+        });
+        
+        // Add "loop awareness" clue
+        this.foundClues.add(`You feel like you've lived this day before (${this.timeManager.dayCount - 1} times)`);
+        this.addClueToNotebook(`You feel like you've lived this day before (${this.timeManager.dayCount - 1} times)`);
+        
+        // Update displays
+        this.updateCluesDisplay();
+        
+        // Restart the day
+        this.timeManager.startTimeLoop();
+    }
+    
+    // Add deja vu visual effect
+    addDejaVuEffect() {
+        const dejaVu = document.createElement('div');
+        dejaVu.className = 'deja-vu-effect';
+        document.body.appendChild(dejaVu);
+        
+        setTimeout(() => {
+            dejaVu.style.opacity = '0';
+            setTimeout(() => dejaVu.remove(), 1000);
+        }, 3000);
+    }
+    
+    // Update timeline display in notebook
+    updateTimelineDisplay() {
+        const timelineContainer = document.getElementById('timelineContainer');
+        if (!timelineContainer) return;
+        
+        timelineContainer.innerHTML = '';
+        
+        if (this.eventTimeline.length === 0) {
+            const emptyMessage = document.createElement('div');
+            emptyMessage.className = 'empty-timeline';
+            emptyMessage.textContent = 'Your investigation timeline will appear here.';
+            timelineContainer.appendChild(emptyMessage);
+            return;
+        }
+        
+        // Sort timeline by day and time
+        const sortedTimeline = [...this.eventTimeline].sort((a, b) => {
+            if (a.day !== b.day) return a.day - b.day;
+            return a.time - b.time;
+        });
+        
+        // Group by day
+        let currentDay = null;
+        
+        sortedTimeline.forEach(entry => {
+            // Add day header if new day
+            if (currentDay !== entry.day) {
+                currentDay = entry.day;
+                const dayHeader = document.createElement('div');
+                dayHeader.className = 'timeline-day-header';
+                dayHeader.textContent = `Day ${currentDay}`;
+                timelineContainer.appendChild(dayHeader);
+            }
+            
+            // Create timeline entry
+            const timelineEntry = document.createElement('div');
+            timelineEntry.className = 'timeline-entry';
+            
+            // Add time
+            const timeElement = document.createElement('div');
+            timeElement.className = 'timeline-time';
+            timeElement.textContent = entry.formattedTime;
+            
+            // Add event type indicator
+            const typeIndicator = document.createElement('span');
+            typeIndicator.className = `timeline-event-type event-type-${entry.type || 'event'}`;
+            
+            // Add description
+            const description = document.createElement('div');
+            description.className = 'timeline-description';
+            description.textContent = entry.description;
+            description.prepend(typeIndicator);
+            
+            // Assemble entry
+            timelineEntry.appendChild(timeElement);
+            timelineEntry.appendChild(description);
+            
+            timelineContainer.appendChild(timelineEntry);
+        });
+    }
+    
+    // Save the game state
+    saveGame() {
+        const saveData = {
+            playerPosition: this.playerPosition,
+            inventory: Array.from(this.inventory),
+            discoveredLocations: Array.from(this.discoveredLocations),
+            foundClues: Array.from(this.foundClues),
+            photos: this.photos,
+            timeData: {
+                time: this.timeManager.time,
+                dayCount: this.timeManager.dayCount,
+                timeScale: this.timeManager.timeScale
+            },
+            flags: this.flags,
+            relationships: this.relationshipManager ? this.relationshipManager.getSaveData() : null,
+            gameVersion: this.gameVersion
         };
-        this.hideDialog();
-
-        // Reset weather effects
-        const rainElement = document.querySelector('.rain');
-        const fogElement = document.querySelector('.fog');
-        if (rainElement) rainElement.classList.remove('active');
-        if (fogElement) fogElement.classList.remove('active');
-        clearInterval(this.atmosphereEffects.lightningInterval);
         
-        // Reset mysterious effects
-        if (this.mysteriousGlow) this.mysteriousGlow.classList.remove('active');
-        if (this.mysteriousShadow) this.mysteriousShadow.classList.remove('active');
+        localStorage.setItem('maplewood_save', JSON.stringify(saveData));
+        this.showNotification('Game saved!');
+        this.playSoundEffect('notification');
+    }
+    
+    // Load a saved game by index
+    loadGame(index) {
+        if (index < 0 || index >= this.savedGames.length) return;
         
-        this.weather = {
-            currentWeather: 'clear',
-            rainChance: 0.2,
-            fogChance: 0.15,
-            stormChance: 0.1,
-            weatherDuration: 0,
-            maxWeatherDuration: 300
-        };
+        const saveData = this.savedGames[index].data;
         
-        // Reset sanity
-        this.sanity = 100;
-        this.sanityElement.textContent = this.sanity;
-        this.gameBoard.classList.remove('sanity-low', 'sanity-critical');
-        document.body.style.filter = 'none';
-        clearTimeout(this.sanityEffectTimeout);
+        // Reset game first
+        this.resetGame();
+        
+        // Restore player position
+        this.player.style.left = `${saveData.playerPosition.x}px`;
+        this.player.style.top = `${saveData.playerPosition.y}px`;
+        
+        // Restore time using TimeManager
+        this.timeManager.loadFromSave(saveData.timeManagerData);
+        this.timeOfDay = this.timeManager.timeOfDay;
+        
+        // Update world lighting
+        this.updateWorldLighting();
+        
+        // Apply time of day visuals
+        document.body.className = `time-${this.timeOfDay}`;
+        
+        // Restore EventScheduler data
+        this.eventScheduler.loadFromSave(saveData.eventSchedulerData);
+        
+        // Restore event timeline
+        this.eventTimeline = saveData.eventTimeline || [];
+        
+        // Restore trust
+        this.trust = saveData.trust;
+        this.trustElement.textContent = this.trust;
+        
+        // Restore clues
+        this.foundClues = new Set(saveData.foundClues);
+        this.updateCluesDisplay();
+        
+        // Restore photos
+        this.photos = saveData.photos || [];
+        this.photoDetails = saveData.photoDetails || [];
+        this.updatePhotosDisplay();
+        
+        // Start game
+        this.isGameRunning = true;
+        this.startButton.disabled = true;
+        this.takePhotoButton.disabled = false;
+        
+        // Start time loop
+        this.timeManager.startTimeLoop();
+        
+        // Update UI for the loaded game state
+        this.updateTimelineDisplay();
+        this.mapManager.updatePlayerPosition();
+        
+        this.showNotification('Game loaded');
+    }
+    
+    // Check for events near player
+    checkEvents() {
+        if (!this.isGameRunning) return;
+        
+        const playerX = parseInt(this.player.style.left) || 0;
+        const playerY = parseInt(this.player.style.top) || 0;
+        
+        this.events.forEach(event => {
+            if (event.triggered) return; // Skip already triggered events
+            
+            // Check if player is close enough to trigger this event
+            const distance = Math.sqrt(
+                Math.pow(event.location.x - playerX, 2) +
+                Math.pow(event.location.y - playerY, 2)
+            );
+            
+            if (distance <= event.radius && 
+                this.timeManager.timeOfDay === event.timeOfDay && 
+                this.trust >= event.trustRequired) {
+                
+                // Trigger the event
+                this.triggerEvent(event);
+            }
+        });
+        
+        // Also check for scheduled events based on player position
+        this.timeManager.checkScheduledEvents();
     }
 
     createPlayer() {
@@ -1159,7 +1245,7 @@ class Game {
         const playerRect = this.player.getBoundingClientRect();
         const photoContext = {
             position: { x: parseInt(this.player.style.left), y: parseInt(this.player.style.top) },
-            timeOfDay: this.timeOfDay,
+            timeOfDay: this.timeManager.timeOfDay,
             nearbyElements: []
         };
         
@@ -1312,7 +1398,7 @@ class Game {
     }
     
     getTimeOfDayColor() {
-        switch(this.timeOfDay) {
+        switch(this.timeManager.timeOfDay) {
             case 'morning': return '87CEEB';
             case 'afternoon': return 'FFD700';
             case 'evening': return 'FF8C00';
@@ -1487,7 +1573,18 @@ class Game {
         const dialog = character[dialogNode] || character.default;
         
         this.dialogCharacterName.textContent = character.name;
+        
+        // Update character portrait with trust indicator
         this.dialogPortrait.className = 'character-portrait ' + character.portrait;
+        if (this.relationshipManager) {
+            const trustTier = this.relationshipManager.getTrustTier(characterId).toLowerCase();
+            this.dialogPortrait.classList.add('trust-' + trustTier);
+        }
+        
+        // Apply styling based on trust tier
+        this.applyDialogStyling(dialog, 
+            this.relationshipManager ? this.relationshipManager.getTrustTier(characterId) : '');
+        
         this.dialogText.textContent = dialog.text;
         
         // Clear previous options
@@ -1497,108 +1594,122 @@ class Game {
         if (dialog.options) {
             dialog.options.forEach(option => {
                 // Check if this option has requirements
-                if (option.requirement && !checkRequirement(option.requirement, this)) {
-                    return; // Skip this option if requirements not met
+                let meetsRequirements = true;
+                let requirementText = '';
+                
+                // Trust requirement check
+                if (option.minTrust) {
+                    const currentTrust = this.relationshipManager ? 
+                        this.relationshipManager.getTrustLevel(characterId) : 0;
+                    
+                    if (currentTrust < option.minTrust) {
+                        meetsRequirements = false;
+                        requirementText = `Requires Trust: ${option.minTrust}`;
+                    }
                 }
                 
-                // Special handling for photo display options
-                if (option.text.startsWith("Show photo:") && this.photos.length === 0) {
-                    return; // Skip photo options if player has no photos
+                // Other requirements check
+                if (option.requires && !this.checkRequirement(option.requires)) {
+                    meetsRequirements = false;
                 }
                 
                 const optionElement = document.createElement('div');
                 optionElement.className = 'dialog-option';
+                optionElement.textContent = option.text;
                 
-                // For photo options, add a visual indicator
-                if (option.text.startsWith("Show photo:")) {
-                    optionElement.classList.add('photo-option');
-                    // Add a small camera icon
-                    optionElement.innerHTML = `<span class="photo-icon">📷</span> ${option.text}`;
-                } else {
-                    optionElement.textContent = option.text;
+                // Add trust requirement indicator
+                if (option.minTrust) {
+                    optionElement.setAttribute('data-requires-trust', `Trust: ${option.minTrust}`);
                 }
                 
-                optionElement.addEventListener('click', () => {
-                    // Add trust impact if defined for this choice
-                    if (option.trust) {
-                        this.trust += option.trust;
-                        this.trustElement.textContent = this.trust;
+                if (!meetsRequirements) {
+                    optionElement.classList.add('disabled');
+                    optionElement.title = requirementText;
+                } else {
+                    optionElement.addEventListener('click', () => {
+                        // Handle dialog option selection
+                        if (option.next) {
+                            this.showDialog(characterId, option.next);
+                        }
                         
-                        // Visual feedback for trust change
-                        const trustFeedback = document.createElement('div');
-                        trustFeedback.className = 'trust-feedback';
-                        trustFeedback.textContent = option.trust > 0 ? `+${option.trust} Trust` : `${option.trust} Trust`;
-                        trustFeedback.classList.add(option.trust > 0 ? 'trust-gain' : 'trust-loss');
-                        document.body.appendChild(trustFeedback);
+                        // Handle trust changes if specified
+                        if (option.trustChange) {
+                            const trustResult = this.relationshipManager.adjustTrust(
+                                characterId, 
+                                option.trustChange, 
+                                option.trustChangeReason || `Selected dialog option: "${option.text}"`
+                            );
+                            
+                            // If tier changed, potentially unlock new dialogue
+                            if (trustResult && trustResult.tierChanged) {
+                                // Could trigger special dialogue or event here
+                                console.log(`Trust tier changed from ${trustResult.previousTier} to ${trustResult.newTier}`);
+                            }
+                        }
                         
-                        // Animate and remove
-                        setTimeout(() => {
-                            trustFeedback.classList.add('fade-out');
-                            setTimeout(() => trustFeedback.remove(), 1000);
-                        }, 1500);
-                    }
-                    
-                    // Handle unlocking clues through dialog choices
-                    if (option.unlocks && !this.foundClues.has(option.unlocks)) {
-                        this.foundClues.add(option.unlocks);
-                        this.addClueToNotebook(option.unlocks);
-                        this.playSoundEffect('clue');
+                        // Handle giving clues
+                        if (option.givesClue) {
+                            this.addClueToNotebook(option.givesClue);
+                        }
                         
-                        // Notify player
-                        const clueNotification = document.createElement('div');
-                        clueNotification.className = 'clue-notification';
-                        clueNotification.textContent = `New clue: "${option.unlocks}"`;
-                        document.body.appendChild(clueNotification);
+                        // Handle setting flags or game state
+                        if (option.setFlag) {
+                            const [flag, value] = option.setFlag.split('=');
+                            this.flags[flag.trim()] = value ? value.trim() : true;
+                        }
                         
-                        // Animate and remove
-                        setTimeout(() => {
-                            clueNotification.classList.add('fade-out');
-                            setTimeout(() => clueNotification.remove(), 1000);
-                        }, 3000);
-                    }
-                    
-                    if (option.next === 'exit') {
-                        this.hideDialog();
-                    } else {
-                        this.showDialog(characterId, option.next);
-                    }
-                });
+                        // Handle ending dialogue
+                        if (option.end) {
+                            this.hideDialog();
+                        }
+                    });
+                }
                 
                 this.dialogOptions.appendChild(optionElement);
             });
         }
         
-        // Add trust if this dialog gives trust
-        if (dialog.trust) {
-            this.trust += dialog.trust;
-            this.trustElement.textContent = this.trust;
-        }
-        
-        // Add clue if this dialog gives a clue
-        if (dialog.clue && !this.foundClues.has(dialog.clue)) {
-            this.foundClues.add(dialog.clue);
-            this.addClueToNotebook(dialog.clue);
-            this.playSoundEffect('clue');
-        }
-        
         // Show the dialog overlay
         this.dialogOverlay.style.display = 'flex';
-        this.playSoundEffect('dialog');
-        
-        // Store the current dialog for reference
-        this.currentDialog = dialogNode;
-        
-        // Check for any time-specific or trust-level specific dialogue styling
-        this.applyDialogStyling(dialog);
     }
     
-    applyDialogStyling(dialog) {
+    /**
+     * Check if a requirement is met
+     * @param {Object} requirement - Requirement to check
+     * @returns {boolean} Whether the requirement is met
+     */
+    checkRequirement(requirement) {
+        if (requirement.trust && this.relationshipManager) {
+            // Check character-specific trust
+            return this.relationshipManager.meetsMinimumTrust(requirement.character || this.currentCharacter, requirement.trust);
+        } else if (requirement.trust) {
+            // Fall back to global trust
+            return this.trust >= requirement.trust;
+        }
+        
+        if (requirement.clue) {
+            return this.foundClues.has(requirement.clue);
+        }
+        
+        if (requirement.time) {
+            return this.timeManager.timeOfDay === requirement.time;
+        }
+        
+        if (requirement.photo) {
+            return this.photos.some(photo => this.determinePhotoType(photo) === requirement.photo);
+        }
+        
+        // Default to true if no recognized requirement
+        return true;
+    }
+    
+    applyDialogStyling(dialog, trustTier = '') {
         // Reset any previous custom styling
         this.dialogText.classList.remove('mysterious', 'urgent', 'friendly', 'suspicious');
         this.dialogOverlay.classList.remove('night-dialog', 'morning-dialog', 'afternoon-dialog', 'evening-dialog');
         
         // Apply time of day styling
-        this.dialogOverlay.classList.add(`${this.timeOfDay}-dialog`);
+        this.dialogOverlay.classList.add(`${this.timeManager.timeOfDay}-dialog`);
         
         // Apply mood styling if specified
         if (dialog.mood) {
@@ -1611,6 +1722,9 @@ class Game {
         } else if (this.trust >= 60) {
             this.dialogText.classList.add('friendly');
         }
+        
+        // Add trust tier class
+        this.dialogPortrait.classList.add('trust-' + trustTier);
     }
     
     hideDialog() {
@@ -1777,424 +1891,7 @@ class Game {
         this.mapManager.createAmbientEffect(effectType, position.x, position.y);
     }
 
-    startTimeLoop() {
-        this.timeInterval = setInterval(() => {
-            this.time += 1;
-            this.updateTimeDisplay();
-            this.updateTimeOfDay();
-            
-            // Update weather occasionally
-            if (this.time % 10 === 0) {
-                this.updateWeather();
-            }
-            
-            // Update mysterious effects occasionally
-            if (this.time % 5 === 0) {
-                this.updateMysteriousEffects();
-            }
-        }, 1000);
-    }
-
-    updateTimeDisplay() {
-        const hours = Math.floor(this.time / 60);
-        const minutes = this.time % 60;
-        const ampm = hours >= 12 ? 'PM' : 'AM';
-        const displayHours = hours % 12 || 12;
-        this.timeElement.textContent = `${displayHours}:${minutes.toString().padStart(2, '0')} ${ampm}`;
-    }
-
-    updateTimeOfDay() {
-        const hour = Math.floor(this.time / 60);
-        
-        let newTimeOfDay;
-        if (hour >= 6 && hour < 12) {
-            newTimeOfDay = "morning";
-        } else if (hour >= 12 && hour < 17) {
-            newTimeOfDay = "afternoon";
-        } else if (hour >= 17 && hour < 20) {
-            newTimeOfDay = "evening";
-        } else {
-            newTimeOfDay = "night";
-        }
-        
-        if (this.timeOfDay !== newTimeOfDay) {
-            this.timeOfDay = newTimeOfDay;
-            
-            // Update time-based elements
-            document.querySelectorAll('.time-sensitive').forEach(element => {
-                element.className = `time-sensitive ${this.timeOfDay}`;
-            });
-            
-            // Apply visual effects based on time of day
-            document.body.className = `time-${this.timeOfDay}`;
-            
-            // Check if time change affects any puzzles
-            if (this.puzzleManager) {
-                this.puzzleManager.updatePuzzles();
-            }
-            
-            // Update any time-dependent events
-            this.checkEvents();
-        }
-    }
-
-    saveGame() {
-        // Generate save game object
-        const saveData = {
-            playerPosition: {
-                x: parseInt(this.player.style.left),
-                y: parseInt(this.player.style.top)
-            },
-            time: this.time,
-            timeOfDay: this.timeOfDay,
-            trust: this.trust,
-            foundClues: Array.from(this.foundClues),
-            photos: this.photoDetails.map(p => ({ ...p })),
-            events: this.events.map(e => ({ ...e })),
-            puzzleState: this.puzzleManager ? this.puzzleManager.exportPuzzleState() : null,
-            mapData: {
-                discoveredLocations: this.mapManager.mapLocations.map(loc => ({
-                    id: loc.id,
-                    discovered: loc.discovered
-                })),
-                pins: this.mapManager.pins
-            }
-        };
-        
-        // Generate save name with date
-        const date = new Date();
-        const saveName = `Save ${date.toLocaleDateString()} ${date.toLocaleTimeString()}`;
-        
-        // Add to saved games
-        this.savedGames.push({
-            name: saveName,
-            data: saveData
-        });
-        
-        // Store in localStorage
-        localStorage.setItem('maplewoodLaneSaves', JSON.stringify(this.savedGames));
-        
-        this.showNotification('Game saved successfully!');
-    }
-    
-    loadSavedGames() {
-        const savedGamesJson = localStorage.getItem('maplewoodLaneSaves');
-        if (savedGamesJson) {
-            this.savedGames = JSON.parse(savedGamesJson);
-        }
-    }
-    
-    showLoadGameMenu() {
-        if (this.savedGames.length === 0) {
-            alert('No saved games found!');
-            return;
-        }
-        
-        // Create a simple menu for selecting a saved game
-        const loadMenu = document.createElement('div');
-        loadMenu.className = 'dialog-overlay';
-        loadMenu.style.display = 'flex';
-        
-        const menuContent = document.createElement('div');
-        menuContent.className = 'dialog-box';
-        
-        const menuHeader = document.createElement('h3');
-        menuHeader.textContent = 'Load Saved Game';
-        menuHeader.style.textAlign = 'center';
-        menuHeader.style.marginBottom = '20px';
-        
-        menuContent.appendChild(menuHeader);
-        
-        // Add saved games list
-        this.savedGames.forEach((save, index) => {
-            const saveButton = document.createElement('div');
-            saveButton.className = 'dialog-option';
-            saveButton.textContent = `Save ${index + 1} - ${save.name} (Trust: ${save.data.trust}, Clues: ${save.data.foundClues.length})`;
-            saveButton.addEventListener('click', () => {
-                loadMenu.remove();
-                this.loadGame(index);
-            });
-            
-            menuContent.appendChild(saveButton);
-        });
-        
-        // Add cancel button
-        const cancelButton = document.createElement('button');
-        cancelButton.id = 'dialogClose';
-        cancelButton.textContent = 'Cancel';
-        cancelButton.addEventListener('click', () => loadMenu.remove());
-        cancelButton.style.alignSelf = 'flex-end';
-        cancelButton.style.marginTop = '20px';
-        
-        menuContent.appendChild(cancelButton);
-        loadMenu.appendChild(menuContent);
-        document.body.appendChild(loadMenu);
-    }
-    
-    loadGame(index) {
-        if (index < 0 || index >= this.savedGames.length) return;
-        
-        const saveData = this.savedGames[index].data;
-        
-        // Reset game first
-        this.resetGame();
-        
-        // Restore player position
-        this.player.style.left = `${saveData.playerPosition.x}px`;
-        this.player.style.top = `${saveData.playerPosition.y}px`;
-        
-        // Restore time
-        this.time = saveData.time;
-        this.timeOfDay = saveData.timeOfDay;
-        this.updateTimeDisplay();
-        
-        // Apply time of day visuals
-        document.body.className = `time-${this.timeOfDay}`;
-        
-        // Restore trust
-        this.trust = saveData.trust;
-        this.trustElement.textContent = this.trust;
-        
-        // Restore clues
-        this.foundClues = new Set(saveData.foundClues);
-        this.updateCluesDisplay();
-        
-        // Restore photos
-        if (saveData.photos && saveData.photos.length > 0) {
-            // Clear existing photos first
-            this.photos = [];
-            this.photoDetails = [];
-            this.photosGrid.innerHTML = '';
-            
-            // Restore each photo
-            saveData.photos.forEach((photoData, index) => {
-                this.photoDetails.push(photoData);
-                
-                // Create photo element
-                const photoContainer = document.createElement('div');
-                photoContainer.className = 'photo-container';
-                
-                const photo = document.createElement('div');
-                photo.className = 'photo';
-                
-                // Recreate photo visual
-                const timeColor = this.getTimeOfDayColor();
-                const encodedTimeColor = encodeURIComponent(`#${timeColor}`);
-                const encodedAaa = encodeURIComponent('#aaa');
-                const encodedBlue = encodeURIComponent('#3498db');
-                
-                const houseIndex = photoData.nearbyElements.find(e => e.type === 'house')?.index ?? -1;
-                const neighborIndex = photoData.nearbyElements.find(e => e.type === 'neighbor')?.index ?? -1;
-                
-                photo.style.backgroundImage = `url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="100" height="100" fill="${encodedTimeColor}"/>${houseIndex >= 0 ? `<rect x="30" y="40" width="40" height="30" fill="${encodedAaa}"/>` : ''}${neighborIndex >= 0 ? `<circle cx="50" cy="50" r="15" fill="${encodedBlue}"/>` : ''}<text x="50" y="20" font-family="Arial" font-size="10" fill="white" text-anchor="middle">Photo ${index+1}</text></svg>')`;
-                
-                photoContainer.appendChild(photo);
-                
-                // Add action buttons
-                const photoActions = document.createElement('div');
-                photoActions.className = 'photo-actions';
-                
-                const examineBtn = document.createElement('button');
-                examineBtn.className = 'photo-action-btn';
-                examineBtn.textContent = 'Examine';
-                examineBtn.addEventListener('click', () => {
-                    this.examinePhoto(index);
-                });
-                
-                const analyzeBtn = document.createElement('button');
-                analyzeBtn.className = 'photo-action-btn';
-                analyzeBtn.textContent = 'Analyze';
-                analyzeBtn.addEventListener('click', () => {
-                    this.analyzePhoto(index);
-                });
-                
-                photoActions.appendChild(examineBtn);
-                photoActions.appendChild(analyzeBtn);
-                
-                photoContainer.appendChild(photoActions);
-                
-                this.photosGrid.appendChild(photoContainer);
-                this.photos.push(photo);
-            });
-        }
-        
-        // Restore events
-        if (saveData.events) {
-            this.events = saveData.events;
-        }
-        
-        // Restore puzzle state
-        if (saveData.puzzleState && this.puzzleManager) {
-            this.puzzleManager.importPuzzleState(saveData.puzzleState);
-            
-            // Recreate notebook entries for active puzzles
-            this.puzzleManager.getAllActivePuzzles().forEach(puzzle => {
-                if (!this.puzzleManager.solvedPuzzles.has(puzzle.id)) {
-                    this.addPuzzleToNotebook(puzzle.id, puzzle);
-                } else {
-                    this.addPuzzleToNotebook(puzzle.id, puzzle);
-                    this.updatePuzzleInNotebook(puzzle.id, puzzle, true);
-                }
-            });
-        }
-        
-        // Load map data if available
-        if (saveData.mapData) {
-            // Restore discovered locations
-            if (saveData.mapData.discoveredLocations) {
-                saveData.mapData.discoveredLocations.forEach(savedLoc => {
-                    const location = this.mapManager.mapLocations.find(loc => loc.id === savedLoc.id);
-                    if (location) {
-                        location.discovered = savedLoc.discovered;
-                    }
-                });
-            }
-            
-            // Restore pins
-            if (saveData.mapData.pins) {
-                // Clear existing pins
-                this.mapManager.pins = [];
-                const existingPins = this.mapManager.fullMap.querySelectorAll('.map-pin');
-                existingPins.forEach(pin => pin.remove());
-                
-                // Add pins from save
-                saveData.mapData.pins.forEach(pin => {
-                    this.mapManager.addPin(pin.x, pin.y, pin.note, pin.color);
-                });
-            }
-        }
-        
-        // Close load menu if it's open
-        const loadMenu = document.querySelector('.load-menu');
-        if (loadMenu) {
-            loadMenu.remove();
-        }
-        
-        this.isGameRunning = true;
-        this.showNotification('Game loaded successfully!');
-    }
-
-    setupFastTravel() {
-        // Create fast travel button
-        const fastTravelBtn = document.createElement('button');
-        fastTravelBtn.id = 'fastTravel';
-        fastTravelBtn.textContent = 'Fast Travel';
-        fastTravelBtn.style.display = 'none'; // Hidden until locations are discovered
-        fastTravelBtn.addEventListener('click', () => this.showFastTravelMenu());
-        
-        // Add button to controls
-        const controlsDiv = document.querySelector('.controls');
-        controlsDiv.insertBefore(fastTravelBtn, document.getElementById('saveGame'));
-    }
-
-    showFastTravelMenu() {
-        if (this.discoveredLocations.size === 0) {
-            alert('No locations discovered yet for fast travel.');
-            return;
-        }
-        
-        // Create a simple menu for selecting a destination
-        const travelMenu = document.createElement('div');
-        travelMenu.className = 'dialog-overlay';
-        travelMenu.style.display = 'flex';
-        
-        const menuContent = document.createElement('div');
-        menuContent.className = 'dialog-box';
-        
-        const menuHeader = document.createElement('h3');
-        menuHeader.textContent = 'Fast Travel';
-        menuHeader.style.textAlign = 'center';
-        menuHeader.style.marginBottom = '20px';
-        
-        menuContent.appendChild(menuHeader);
-        
-        // Add list of locations
-        const locationNames = {
-            'house_0': "Mrs. Finch's House",
-            'house_1': "Jake & Lila's House",
-            'house_2': "Mr. Arnold's House",
-            'house_3': "Abandoned House",
-            'park': "Maplewood Park"
-        };
-        
-        Array.from(this.discoveredLocations).forEach(locId => {
-            const locationButton = document.createElement('div');
-            locationButton.className = 'dialog-option';
-            locationButton.textContent = locationNames[locId] || locId;
-            locationButton.addEventListener('click', () => {
-                travelMenu.remove();
-                this.fastTravel(locId);
-            });
-            
-            menuContent.appendChild(locationButton);
-        });
-        
-        // Add cancel button
-        const cancelButton = document.createElement('button');
-        cancelButton.id = 'dialogClose';
-        cancelButton.textContent = 'Cancel';
-        cancelButton.addEventListener('click', () => travelMenu.remove());
-        cancelButton.style.alignSelf = 'flex-end';
-        cancelButton.style.marginTop = '20px';
-        
-        menuContent.appendChild(cancelButton);
-        travelMenu.appendChild(menuContent);
-        document.body.appendChild(travelMenu);
-    }
-
-    fastTravel(locationId) {
-        // Set player position based on location
-        let targetPos = { x: 0, y: 0 };
-        
-        if (locationId.startsWith('house_')) {
-            const houseIndex = parseInt(locationId.split('_')[1]);
-            const positions = [
-                { x: 100, y: 100 }, // Mrs. Finch's house
-                { x: 300, y: 150 }, // Jake & Lila's house
-                { x: 500, y: 200 }, // Mr. Arnold's house
-                { x: 700, y: 100 }  // Abandoned house
-            ];
-            
-            if (houseIndex >= 0 && houseIndex < positions.length) {
-                // Position player near the house (slightly offset)
-                targetPos = {
-                    x: positions[houseIndex].x + 50,
-                    y: positions[houseIndex].y + 50
-                };
-            }
-        } else if (locationId === 'park') {
-            targetPos = { x: 400, y: 300 };
-        }
-        
-        // Update player position
-        this.player.style.left = `${targetPos.x}px`;
-        this.player.style.top = `${targetPos.y}px`;
-        
-        // Update map and check for events
-        this.updateMap();
-        this.checkEvents();
-        
-        // Add a small "swoosh" animation for player
-        this.player.style.transition = 'all 0.5s';
-        setTimeout(() => {
-            this.player.style.transition = '';
-        }, 500);
-        
-        this.playSoundEffect('travel');
-    }
-
-    updateFastTravelAvailability() {
-        const fastTravelBtn = document.getElementById('fastTravel');
-        if (this.discoveredLocations.size > 0) {
-            fastTravelBtn.style.display = 'block';
-            
-            // First time fast travel becomes available
-            if (this.discoveredLocations.size === 1) {
-                alert('You can now use Fast Travel to quickly move between discovered locations!');
-            }
-        }
-    }
-
+    // Use eventScheduler for event checking
     checkEvents() {
         if (!this.isGameRunning) return;
         
@@ -2211,13 +1908,16 @@ class Game {
             );
             
             if (distance <= event.radius && 
-                this.timeOfDay === event.timeOfDay && 
+                this.timeManager.timeOfDay === event.timeOfDay && 
                 this.trust >= event.trustRequired) {
                 
                 // Trigger the event
                 this.triggerEvent(event);
             }
         });
+        
+        // Also check for scheduled events based on player position
+        this.timeManager.checkScheduledEvents();
     }
 
     triggerEvent(event) {
@@ -2293,9 +1993,8 @@ class Game {
         if (!this.isGameRunning) return;
         
         // Make end game option available after reaching threshold conditions
-        // (e.g., minimum clues found, minimum trust level, or minimum game time)
         const endGameBtn = document.getElementById('endGame');
-        if (this.foundClues.size >= 3 || this.trust >= 30 || this.time >= 720) { // 12+ in-game hours
+        if (this.foundClues.size >= 3 || this.trust >= 30 || this.timeManager.time >= 720) { // 12+ in-game hours
             endGameBtn.style.display = 'block';
         }
     }
@@ -2451,7 +2150,7 @@ class Game {
             <p><strong>Trust Level:</strong> ${this.trust}</p>
             <p><strong>Clues Discovered:</strong> ${this.foundClues.size} / ${this.clues.length + Object.keys(this.events).length}</p>
             <p><strong>Photos Taken:</strong> ${this.photos.length}</p>
-            <p><strong>Time Spent:</strong> ${Math.floor((this.time - 360) / 60)} hours ${(this.time - 360) % 60} minutes</p>
+            <p><strong>Time Spent:</strong> ${Math.floor((this.timeManager.time - 360) / 60)} hours ${(this.timeManager.time - 360) % 60} minutes</p>
         `;
         
         const restartButton = document.createElement('button');
@@ -2576,7 +2275,7 @@ class Game {
     updateMysteriousEffects() {
         // Only apply mysterious effects at night or evening and when player has sufficient trust/clues
         const shouldShowEffects = 
-            (this.timeOfDay === 'night' || this.timeOfDay === 'evening') && 
+            (this.timeManager.timeOfDay === 'night' || this.timeManager.timeOfDay === 'evening') && 
             (this.trust >= 30 || this.foundClues.size >= 3);
             
         // Update mysterious glow
@@ -2637,7 +2336,7 @@ class Game {
 
     setupNotebookTabs() {
         // Get tab buttons
-        const tabs = document.querySelectorAll('.tab');
+        const tabs = document.querySelectorAll('.notebook-tabs .tab');
         
         // Add event listeners to tabs
         tabs.forEach(tab => {
@@ -2649,14 +2348,28 @@ class Game {
                 tab.classList.add('active');
                 
                 // Get the tab content id
-                const tabId = tab.getAttribute('data-tab') + 'Tab';
+                const tabName = tab.getAttribute('data-tab');
+                const tabId = tabName.endsWith('Tab') ? tabName : tabName + 'Tab';
                 
                 // Hide all tab content
                 const tabContents = document.querySelectorAll('.tab-content');
                 tabContents.forEach(content => content.classList.remove('active'));
                 
                 // Show the selected tab content
-                document.getElementById(tabId).classList.add('active');
+                const contentElement = document.getElementById(tabName) || document.getElementById(tabId);
+                if (contentElement) {
+                    contentElement.classList.add('active');
+                    
+                    // Special handling for map tab
+                    if (tabName === 'mapTab' && this.mapManager) {
+                        this.mapManager.refreshMap();
+                    }
+                    
+                    // Special handling for relationships tab
+                    if (tabName === 'relationships' && this.relationshipManager) {
+                        this.updateRelationshipsDisplay();
+                    }
+                }
             });
         });
         
@@ -2664,86 +2377,16 @@ class Game {
         this.setupEnhancedNotebook();
     }
     
-    setupEnhancedNotebook() {
-        // Get the clues tab content
-        const cluesTab = document.getElementById('cluesTab');
+    updateRelationshipsDisplay() {
+        const container = document.getElementById('relationshipsContainer');
+        if (!container || !this.relationshipManager) return;
         
-        // Create toolbar
-        const toolbar = document.createElement('div');
-        toolbar.className = 'notebook-toolbar';
+        // Clear existing content
+        container.innerHTML = '';
         
-        // Create search bar
-        const searchBar = document.createElement('input');
-        searchBar.type = 'text';
-        searchBar.className = 'notebook-search';
-        searchBar.placeholder = 'Search clues...';
-        searchBar.addEventListener('input', (e) => this.searchClues(e.target.value));
-        
-        // Create filters
-        const filters = document.createElement('div');
-        filters.className = 'notebook-filters';
-        
-        // Create filter buttons for different categories
-        const categories = ['all', 'person', 'location', 'time', 'object'];
-        categories.forEach(category => {
-            const filterBtn = document.createElement('button');
-            filterBtn.className = 'filter-btn';
-            filterBtn.textContent = category === 'all' ? 'All' : category.charAt(0).toUpperCase() + category.slice(1);
-            filterBtn.dataset.filter = category;
-            
-            // Add click handler
-            filterBtn.addEventListener('click', () => {
-                // Toggle active class
-                if (filterBtn.classList.contains('active')) {
-                    filterBtn.classList.remove('active');
-                    this.clueFilters.tag = null;
-                } else {
-                    // Remove active from all filter buttons
-                    document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
-                    filterBtn.classList.add('active');
-                    this.clueFilters.tag = category === 'all' ? null : category;
-                }
-                
-                // Update clues display
-                this.updateCluesDisplay();
-            });
-            
-            filters.appendChild(filterBtn);
-        });
-        
-        // Create view toggle
-        const viewToggle = document.createElement('div');
-        viewToggle.className = 'view-toggle';
-        
-        const listViewBtn = document.createElement('button');
-        listViewBtn.className = 'view-btn active';
-        listViewBtn.innerHTML = '≡';
-        listViewBtn.title = 'List View';
-        listViewBtn.addEventListener('click', () => this.switchNotebookView('list'));
-        
-        const timelineViewBtn = document.createElement('button');
-        timelineViewBtn.className = 'view-btn';
-        timelineViewBtn.innerHTML = '⌚';
-        timelineViewBtn.title = 'Timeline View';
-        timelineViewBtn.addEventListener('click', () => this.switchNotebookView('timeline'));
-        
-        viewToggle.appendChild(listViewBtn);
-        viewToggle.appendChild(timelineViewBtn);
-        
-        // Add view toggle to toolbar
-        toolbar.appendChild(viewToggle);
-        
-        // Add to clues tab
-        cluesTab.insertBefore(searchBar, cluesTab.firstChild);
-        cluesTab.insertBefore(filters, searchBar.nextSibling);
-        cluesTab.insertBefore(toolbar, filters.nextSibling);
-        
-        // Store references for later use
-        this.notebookSearchBar = searchBar;
-        this.notebookFilters = filters;
-        this.notebookToolbar = toolbar;
-        this.listViewBtn = listViewBtn;
-        this.timelineViewBtn = timelineViewBtn;
+        // Generate relationships UI
+        const relationshipsUI = this.relationshipManager.generateRelationshipUI();
+        container.appendChild(relationshipsUI);
     }
     
     updateSanity(amount) {
@@ -3265,12 +2908,12 @@ class Game {
                 // Reduce animation frequency
                 clearInterval(this.timeInterval);
                 this.timeInterval = setInterval(() => {
-                    this.time += 1;
+                    this.timeManager.time += 1;
                     this.updateTimeDisplay();
-                    if (this.time % 30 === 0) {
-                        this.updateTimeOfDay();
+                    if (this.timeManager.time % 30 === 0) {
+                        this.timeManager.updateTimeOfDay();
                     }
-                    if (this.time % 60 === 0) {
+                    if (this.timeManager.time % 60 === 0) {
                         this.updateWeather();
                     }
                 }, 1000);
@@ -3293,12 +2936,12 @@ class Game {
                 // Standard animation frequency
                 clearInterval(this.timeInterval);
                 this.timeInterval = setInterval(() => {
-                    this.time += 1;
+                    this.timeManager.time += 1;
                     this.updateTimeDisplay();
-                    if (this.time % 20 === 0) {
-                        this.updateTimeOfDay();
+                    if (this.timeManager.time % 20 === 0) {
+                        this.timeManager.updateTimeOfDay();
                     }
-                    if (this.time % 30 === 0) {
+                    if (this.timeManager.time % 30 === 0) {
                         this.updateWeather();
                     }
                 }, 1000);
@@ -3318,17 +2961,17 @@ class Game {
                 // Reset to normal animation frequency
                 clearInterval(this.timeInterval);
                 this.timeInterval = setInterval(() => {
-                    this.time += 1;
+                    this.timeManager.time += 1;
                     this.updateTimeDisplay();
-                    this.updateTimeOfDay();
+                    this.timeManager.updateTimeOfDay();
                     
                     // Update weather occasionally
-                    if (this.time % 10 === 0) {
+                    if (this.timeManager.time % 10 === 0) {
                         this.updateWeather();
                     }
                     
                     // Update mysterious effects occasionally
-                    if (this.time % 5 === 0) {
+                    if (this.timeManager.time % 5 === 0) {
                         this.updateMysteriousEffects();
                     }
                 }, 1000);
@@ -4083,7 +3726,7 @@ class Game {
         
         // Filter events for current time of day
         const possibleEvents = this.randomEvents.filter(event => 
-            event.timeOfDay.includes(this.timeOfDay)
+            event.timeOfDay.includes(this.timeManager.timeOfDay)
         );
         
         if (possibleEvents.length === 0) return;
@@ -4159,6 +3802,507 @@ class Game {
         
         // Check for nearby elements at the new position
         this.checkNearbyElements();
+    }
+
+    /**
+     * Get trust-appropriate dialogue from multiple options
+     * @param {string} characterId - Character identifier
+     * @param {Array} dialogueVariants - Array of dialogue options with trust requirements
+     * @returns {Object} Selected dialogue variant
+     */
+    getDynamicDialogue(characterId, dialogueVariants) {
+        if (!dialogueVariants || !Array.isArray(dialogueVariants) || dialogueVariants.length === 0) {
+            return null;
+        }
+        
+        // If no relationship manager, return the first option
+        if (!this.relationshipManager) {
+            return dialogueVariants[0];
+        }
+        
+        // Get character's trust level
+        const trustLevel = this.relationshipManager.getTrustLevel(characterId);
+        const trustTier = this.relationshipManager.getTrustTier(characterId);
+        
+        // First try to find a dialogue specific to the current trust tier
+        const tierMatch = dialogueVariants.find(variant => 
+            variant.trustTier && variant.trustTier.toLowerCase() === trustTier.toLowerCase()
+        );
+        
+        if (tierMatch) return tierMatch;
+        
+        // Then try to find a dialogue that meets the minimum trust level
+        const validOptions = dialogueVariants
+            .filter(variant => !variant.minTrust || trustLevel >= variant.minTrust)
+            .sort((a, b) => (b.minTrust || 0) - (a.minTrust || 0));
+        
+        return validOptions.length > 0 ? validOptions[0] : dialogueVariants[0];
+    }
+    
+    /**
+     * Handle dynamic trust-based dialogue in an NPC conversation
+     * @param {string} characterId - Character identifier
+     * @param {string} dialogueId - Base dialogue identifier
+     */
+    showDynamicDialog(characterId, dialogueId) {
+        const character = DIALOGUES[characterId];
+        if (!character) return;
+        
+        // Check if this dialogue has variants
+        if (character[dialogueId + '_variants'] && Array.isArray(character[dialogueId + '_variants'])) {
+            // Get the appropriate variant based on trust
+            const selectedVariant = this.getDynamicDialogue(
+                characterId, 
+                character[dialogueId + '_variants']
+            );
+            
+            if (selectedVariant && selectedVariant.nodeId) {
+                // Show the selected variant
+                this.showDialog(characterId, selectedVariant.nodeId);
+                return;
+            }
+        }
+        
+        // Fallback to standard dialogue if no variants or selection failed
+        this.showDialog(characterId, dialogueId);
+    }
+
+    /**
+     * Handle reactions when trust level changes significantly
+     * @param {string} characterId - Character identifier
+     * @param {Object} trustChange - Object containing trust change details
+     */
+    handleTrustChangeReaction(characterId, trustChange) {
+        if (!trustChange || !characterId) return;
+        
+        // Skip reactions for small changes
+        if (Math.abs(trustChange.previousLevel - trustChange.newLevel) < 5) return;
+        
+        const character = DIALOGUES[characterId];
+        if (!character) return;
+        
+        // Check if this character has trust reactions defined
+        if (character.trustReactions) {
+            let reactionType = null;
+            
+            // Determine reaction type
+            if (trustChange.tierChanged) {
+                // React to tier change
+                reactionType = `tier_${trustChange.newTier.toLowerCase()}`;
+            } else if (trustChange.newLevel > trustChange.previousLevel) {
+                // React to significant trust gain
+                reactionType = 'trust_gained';
+            } else {
+                // React to significant trust loss
+                reactionType = 'trust_lost';
+            }
+            
+            // Look for specific reaction
+            if (character.trustReactions[reactionType]) {
+                // Queue this reaction dialogue for next time player talks to character
+                this.queuedReactions = this.queuedReactions || {};
+                this.queuedReactions[characterId] = {
+                    type: reactionType,
+                    dialogueId: character.trustReactions[reactionType]
+                };
+                
+                // Update UI to show character has something to say
+                this.updateCharacterStatus(characterId, 'has_reaction');
+            }
+        }
+    }
+    
+    /**
+     * Update character status indicators on the map
+     * @param {string} characterId - Character identifier
+     * @param {string} status - Status type to indicate
+     */
+    updateCharacterStatus(characterId, status) {
+        // Find character element on map
+        const characterElements = document.querySelectorAll(`.character[data-id="${characterId}"]`);
+        
+        characterElements.forEach(element => {
+            // Clear previous statuses
+            element.classList.remove('has-reaction', 'has-clue', 'has-quest');
+            
+            // Add new status
+            switch(status) {
+                case 'has_reaction':
+                    element.classList.add('has-reaction');
+                    break;
+                case 'has_clue':
+                    element.classList.add('has-clue');
+                    break;
+                case 'has_quest':
+                    element.classList.add('has-quest');
+                    break;
+            }
+        });
+    }
+
+    initGame() {
+        // ... existing code ...
+        
+        // Initialize relationship manager
+        this.relationshipManager = new RelationshipManager(this);
+        
+        // ... existing code ...
+        
+        // Create notebook tabs including relationships
+        this.notebookTabs = {
+            clues: document.getElementById('notebook-clues-tab'),
+            photos: document.getElementById('notebook-photos-tab'),
+            map: document.getElementById('notebook-map-tab'),
+            relationships: document.getElementById('notebook-relationships-tab')
+        };
+        
+        // ... existing code ...
+        
+        // Set up notebook tabs click handlers
+        this.notebookTabs.clues.addEventListener('click', () => this.showNotebookTab('clues'));
+        this.notebookTabs.photos.addEventListener('click', () => this.showNotebookTab('photos'));
+        this.notebookTabs.map.addEventListener('click', () => this.showNotebookTab('map'));
+        this.notebookTabs.relationships.addEventListener('click', () => this.showNotebookTab('relationships'));
+        
+        // ... existing code ...
+        
+        // Start animation loop
+        this.startAnimationLoop();
+    }
+    
+    /**
+     * Start the animation loop for continuous updates
+     */
+    startAnimationLoop() {
+        const animate = () => {
+            this.update();
+            requestAnimationFrame(animate);
+        };
+        
+        // Start the animation loop
+        requestAnimationFrame(animate);
+    }
+    
+    // ... existing code ...
+    
+    showNotebookTab(tab) {
+        // Hide all tabs
+        document.getElementById('notebook-clues').style.display = 'none';
+        document.getElementById('notebook-photos').style.display = 'none';
+        document.getElementById('notebook-map').style.display = 'none';
+        document.getElementById('notebook-relationships').style.display = 'none';
+        
+        // Reset all tab buttons
+        this.notebookTabs.clues.classList.remove('active');
+        this.notebookTabs.photos.classList.remove('active');
+        this.notebookTabs.map.classList.remove('active');
+        this.notebookTabs.relationships.classList.remove('active');
+        
+        // Show the selected tab
+        document.getElementById('notebook-' + tab).style.display = 'block';
+        this.notebookTabs[tab].classList.add('active');
+        
+        // Special handling for different tabs
+        if (tab === 'map') {
+            this.refreshNotebookMap();
+        } else if (tab === 'relationships') {
+            this.refreshRelationshipsTab();
+        }
+    }
+    
+    /**
+     * Refresh the relationships tab content
+     */
+    refreshRelationshipsTab() {
+        const container = document.getElementById('notebook-relationships');
+        container.innerHTML = '';
+        
+        if (this.relationshipManager) {
+            const relationshipsUI = this.relationshipManager.generateRelationshipUI();
+            container.appendChild(relationshipsUI);
+        } else {
+            container.innerHTML = '<p class="empty-message">No relationship data available.</p>';
+        }
+    }
+
+    loadGame() {
+        const saveData = JSON.parse(localStorage.getItem('maplewood_save'));
+        if (!saveData) {
+            this.showNotification('No saved game found!', 'error');
+            return false;
+        }
+        
+        // Version check
+        if (saveData.gameVersion !== this.gameVersion) {
+            this.showNotification('Warning: This save is from a different game version.', 'warning');
+        }
+        
+        // Load player position
+        this.playerPosition = saveData.playerPosition;
+        
+        // Load inventory and collections
+        this.inventory = new Set(saveData.inventory || []);
+        this.discoveredLocations = new Set(saveData.discoveredLocations || []);
+        this.foundClues = new Set(saveData.foundClues || []);
+        this.photos = saveData.photos || [];
+        
+        // Load time data
+        if (saveData.timeData) {
+            this.timeManager.time = saveData.timeData.time;
+            this.timeManager.dayCount = saveData.timeData.dayCount;
+            this.timeManager.timeScale = saveData.timeData.timeScale;
+            this.timeManager.updateTimeDisplay();
+            this.timeManager.applyLighting(true);
+        }
+        
+        // Load game flags
+        this.flags = saveData.flags || {};
+        
+        // Load relationship data
+        if (saveData.relationships && this.relationshipManager) {
+            this.relationshipManager.loadFromSave(saveData.relationships);
+        }
+        
+        // Update player position on the screen
+        this.updatePlayerPosition();
+        
+        // Refresh notebook contents
+        this.refreshNotebook();
+        
+        this.showNotification('Game loaded!');
+        this.playSoundEffect('notification');
+        return true;
+    }
+
+    /**
+     * Handle player interaction with map elements
+     * @param {HTMLElement} element - The element the player is interacting with
+     */
+    handleInteraction(element) {
+        console.log('Interacting with:', element.dataset.type);
+        
+        // Handle different types of interactive elements
+        switch (element.dataset.type) {
+            case 'character': 
+                const characterId = element.dataset.id;
+                console.log('Talking to character:', characterId);
+                
+                // Check for queued reactions from trust changes
+                if (this.queuedReactions && this.queuedReactions[characterId]) {
+                    const reaction = this.queuedReactions[characterId];
+                    console.log('Playing queued reaction:', reaction);
+                    
+                    // Clear the reaction
+                    delete this.queuedReactions[characterId];
+                    
+                    // Update character status (remove indicator)
+                    this.updateCharacterStatus(characterId, 'none');
+                    
+                    // Show the reaction dialogue
+                    this.showDialog(characterId, reaction.dialogueId);
+                } 
+                // Check for dynamic dialogue variants
+                else if (DIALOGUES[characterId] && DIALOGUES[characterId].default_variants) {
+                    // Use dynamic dialogue system
+                    this.showDynamicDialog(characterId, 'default');
+                }
+                else {
+                    // Regular dialogue
+                    this.showDialog(characterId);
+                }
+                break;
+                
+            // ... rest of the existing cases ...
+        }
+    }
+
+    /**
+     * Conclude the game and show ending
+     * Prompts player for final theory and determines ending based on progress
+     */
+    concludeGame() {
+        console.log("Concluding game and determining ending...");
+        
+        // Prompt player to submit their final theory
+        if (this.endingManager) {
+            // Pause game systems
+            this.isPaused = true;
+            
+            // Show final theory submission UI
+            this.endingManager.createFinalTheorySubmission();
+        } else {
+            console.error("EndingManager not initialized");
+        }
+    }
+    
+    /**
+     * Determine which ending the player has earned
+     * @returns {string} The ending ID
+     */
+    determineEnding() {
+        if (this.endingManager) {
+            return this.endingManager.evaluateEnding();
+        }
+        return null;
+    }
+    
+    /**
+     * Show specific ending to the player
+     * @param {string} endingId - The ending ID to show
+     */
+    showEnding(endingId) {
+        if (this.endingManager) {
+            this.endingManager.presentEnding();
+        }
+    }
+
+    /**
+     * Add conclude investigation button
+     * This button appears when player has collected enough clues
+     */
+    addConcludeInvestigationButton() {
+        // Check if button already exists
+        if (document.getElementById('concludeInvestigationBtn')) {
+            return;
+        }
+        
+        // Create button container
+        const container = document.createElement('div');
+        container.className = 'conclude-button-container';
+        
+        // Create conclude button
+        const concludeBtn = document.createElement('button');
+        concludeBtn.id = 'concludeInvestigationBtn';
+        concludeBtn.className = 'conclude-investigation-btn';
+        concludeBtn.textContent = 'Conclude Investigation';
+        
+        // Add tooltip
+        const tooltip = document.createElement('div');
+        tooltip.className = 'conclude-tooltip';
+        tooltip.textContent = 'This will end your investigation and determine an ending based on your findings';
+        
+        concludeBtn.appendChild(tooltip);
+        
+        // Add click event
+        concludeBtn.addEventListener('click', () => {
+            // Show confirmation dialog
+            this.showConcludeConfirmation();
+        });
+        
+        container.appendChild(concludeBtn);
+        
+        // Add to controls section
+        const controlsSection = document.querySelector('.controls');
+        if (controlsSection) {
+            controlsSection.appendChild(container);
+        }
+    }
+    
+    /**
+     * Show confirmation dialog for concluding the investigation
+     */
+    showConcludeConfirmation() {
+        const overlay = document.createElement('div');
+        overlay.className = 'dialog-overlay';
+        overlay.style.display = 'flex';
+        
+        const dialog = document.createElement('div');
+        dialog.className = 'dialog-box';
+        
+        const header = document.createElement('h3');
+        header.textContent = 'Conclude Investigation?';
+        header.style.textAlign = 'center';
+        header.style.marginBottom = '15px';
+        
+        const message = document.createElement('p');
+        message.textContent = 'Are you sure you want to conclude your investigation? This will end the game and determine an ending based on the clues you\'ve found and your relationships with the inhabitants of Maplewood Lane.';
+        message.style.marginBottom = '20px';
+        
+        const buttonContainer = document.createElement('div');
+        buttonContainer.style.display = 'flex';
+        buttonContainer.style.justifyContent = 'space-between';
+        buttonContainer.style.gap = '10px';
+        
+        const cancelButton = document.createElement('button');
+        cancelButton.textContent = 'Continue Investigating';
+        cancelButton.style.backgroundColor = '#95a5a6';
+        cancelButton.style.flex = '1';
+        cancelButton.addEventListener('click', () => {
+            overlay.remove();
+        });
+        
+        const confirmButton = document.createElement('button');
+        confirmButton.textContent = 'Conclude Investigation';
+        confirmButton.style.backgroundColor = '#e74c3c';
+        confirmButton.style.flex = '1';
+        confirmButton.addEventListener('click', () => {
+            overlay.remove();
+            this.concludeGame();
+        });
+        
+        buttonContainer.appendChild(cancelButton);
+        buttonContainer.appendChild(confirmButton);
+        
+        dialog.appendChild(header);
+        dialog.appendChild(message);
+        dialog.appendChild(buttonContainer);
+        
+        overlay.appendChild(dialog);
+        document.body.appendChild(overlay);
+    }
+    
+    /**
+     * Check if the conclude button should be shown
+     * Shows the button if player has found enough clues
+     */
+    checkConcludeAvailability() {
+        // Don't show if game is just starting
+        if (!this.gameStarted) return;
+        
+        const clueCount = this.foundClues.size;
+        const minRequiredClues = 10; // Minimum clues required to conclude
+        
+        if (clueCount >= minRequiredClues) {
+            this.addConcludeInvestigationButton();
+            
+            // Add pulsing effect if player has found a lot of clues
+            const concludeBtn = document.getElementById('concludeInvestigationBtn');
+            if (concludeBtn && clueCount >= 20) {
+                concludeBtn.classList.add('pulse');
+            }
+        }
+    }
+
+    update() {
+        // Skip update if paused
+        if (this.isPaused) return;
+        
+        // Update elapsed time
+        const now = Date.now();
+        const deltaTime = now - this.lastUpdateTime;
+        this.lastUpdateTime = now;
+        
+        // Skip frame if too much time has elapsed (tab was inactive)
+        if (deltaTime > 1000) return;
+        
+        // Only update time if game is running
+        if (this.gameStarted) {
+            // Check for conclude button availability (every 10 seconds)
+            if (this.frameCount % 600 === 0) {
+                this.checkConcludeAvailability();
+            }
+            
+            // Update time system
+            this.timeManager.update(deltaTime);
+            
+            // Update companion animations
+            if (this.companionSystem) {
+                this.companionSystem.update(now);
+            }
+        }
+        
+        // Increment frame counter
+        this.frameCount++;
     }
 }
 
@@ -4270,4 +4414,14 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     `;
     document.head.appendChild(style);
+}); 
+
+// Initialize DevTools for debugging
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize the DevTools after game is created
+    const game = window.gameInstance;
+    if (game) {
+        window.devTools = new DevTools(game);
+        console.log('[DEBUG] Developer tools initialized. Press ~ to open debug menu, Ctrl+D for overlay.');
+    }
 }); 

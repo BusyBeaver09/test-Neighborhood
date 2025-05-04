@@ -1,0 +1,423 @@
+/**
+ * dev-tools.css - Styling for developer and debugging tools
+ */
+
+/* Dev Menu Panel */
+.dev-menu {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    width: 320px;
+    background-color: rgba(20, 20, 30, 0.95);
+    color: #eee;
+    border-radius: 8px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+    z-index: 9999;
+    font-family: monospace;
+    font-size: 14px;
+    overflow: hidden;
+}
+
+.dev-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #2a2a3a;
+    padding: 8px 12px;
+    border-bottom: 1px solid #444;
+}
+
+.dev-header h3 {
+    margin: 0;
+    font-size: 16px;
+    color: #4cc9f0;
+}
+
+.dev-close-btn {
+    background: transparent;
+    border: none;
+    color: #ccc;
+    cursor: pointer;
+    font-size: 16px;
+    padding: 0 5px;
+}
+
+.dev-close-btn:hover {
+    color: #fff;
+}
+
+/* Tabs */
+.dev-tabs {
+    display: flex;
+    border-bottom: 1px solid #444;
+}
+
+.dev-tab {
+    flex: 1;
+    padding: 8px 0;
+    text-align: center;
+    background: #222;
+    border: none;
+    color: #aaa;
+    cursor: pointer;
+}
+
+.dev-tab:hover {
+    background: #333;
+    color: #eee;
+}
+
+.dev-tab.active {
+    background: #1a1a2e;
+    color: #4cc9f0;
+    border-bottom: 2px solid #4cc9f0;
+}
+
+/* Tab Content */
+.dev-tab-content {
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+.tab-panel {
+    padding: 12px;
+}
+
+/* Common elements */
+.dev-preset-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 15px;
+}
+
+.dev-preset-btn {
+    background: #333;
+    color: #ddd;
+    border: 1px solid #555;
+    border-radius: 4px;
+    padding: 5px 10px;
+    cursor: pointer;
+    font-size: 12px;
+    flex-grow: 1;
+}
+
+.dev-preset-btn:hover {
+    background: #444;
+    box-shadow: 0 0 5px rgba(76, 201, 240, 0.5);
+}
+
+/* Custom control groups */
+.dev-custom-time {
+    background: rgba(40, 40, 60, 0.5);
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 10px;
+}
+
+.dev-custom-time label {
+    display: block;
+    margin-bottom: 5px;
+    font-size: 12px;
+    color: #bbb;
+}
+
+.dev-custom-time input[type="number"] {
+    width: 100%;
+    padding: 5px;
+    background: #333;
+    border: 1px solid #555;
+    color: #eee;
+    border-radius: 3px;
+    margin-bottom: 8px;
+}
+
+.dev-custom-time button {
+    background: #4cc9f0;
+    color: #111;
+    border: none;
+    border-radius: 3px;
+    padding: 6px 12px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.dev-custom-time button:hover {
+    background: #7ce0ff;
+}
+
+/* Trust Controls */
+.dev-trust-item {
+    background: rgba(40, 40, 60, 0.5);
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 10px;
+}
+
+.dev-trust-item label {
+    display: inline-block;
+    width: 120px;
+    color: #bbb;
+}
+
+.dev-trust-item span {
+    color: #4cc9f0;
+    font-weight: bold;
+    margin-right: 10px;
+}
+
+.dev-trust-item input[type="range"] {
+    width: 100%;
+    margin: 10px 0;
+}
+
+.dev-trust-item button {
+    background: #4cc9f0;
+    color: #111;
+    border: none;
+    border-radius: 3px;
+    padding: 3px 10px;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.dev-trust-item button:hover {
+    background: #7ce0ff;
+}
+
+.dev-refresh-btn {
+    width: 100%;
+    background: #333;
+    color: #eee;
+    border: 1px solid #555;
+    border-radius: 4px;
+    padding: 8px;
+    margin-top: 10px;
+    cursor: pointer;
+}
+
+.dev-refresh-btn:hover {
+    background: #444;
+}
+
+/* Debug Overlay */
+.debug-overlay {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    background-color: rgba(0, 0, 0, 0.7);
+    color: #eee;
+    padding: 10px;
+    border-radius: 5px;
+    font-family: monospace;
+    font-size: 12px;
+    z-index: 9998;
+    max-width: 300px;
+}
+
+.debug-section {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.debug-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+/* Section headers and containers */
+.dev-section {
+    margin-bottom: 20px;
+    padding: 10px;
+    background: rgba(40, 40, 60, 0.5);
+    border-radius: 5px;
+}
+
+.dev-section h4 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    color: #4cc9f0;
+    font-size: 14px;
+}
+
+.dev-description {
+    font-size: 12px;
+    color: #bbb;
+    margin-bottom: 15px;
+}
+
+/* Clue input elements */
+.dev-clue-input, 
+.dev-tag-input {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 8px;
+    background: #222;
+    border: 1px solid #444;
+    color: #eee;
+    border-radius: 3px;
+    font-family: inherit;
+}
+
+.dev-clue-input {
+    resize: vertical;
+}
+
+.dev-add-clue-btn {
+    background: #4cc9f0;
+    color: #111;
+    border: none;
+    border-radius: 3px;
+    padding: 6px 12px;
+    cursor: pointer;
+    font-weight: bold;
+    margin-top: 5px;
+}
+
+/* Clues list */
+.dev-clues-list {
+    max-height: 200px;
+    overflow-y: auto;
+    margin-bottom: 10px;
+}
+
+.dev-clue-item {
+    background: rgba(30, 30, 40, 0.8);
+    border-radius: 3px;
+    padding: 8px;
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.dev-clue-text {
+    flex: 1;
+    font-size: 12px;
+    word-break: break-word;
+    padding-right: 8px;
+}
+
+.dev-remove-btn {
+    background: #e74c3c;
+    color: white;
+    border: none;
+    border-radius: 3px;
+    padding: 3px 6px;
+    font-size: 11px;
+    cursor: pointer;
+}
+
+.dev-no-clues {
+    text-align: center;
+    padding: 15px;
+    color: #999;
+    font-style: italic;
+}
+
+/* Ending cards */
+.dev-endings-container {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.dev-ending-card {
+    background: rgba(30, 30, 40, 0.8);
+    border-radius: 4px;
+    padding: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.dev-ending-card h4 {
+    margin: 0;
+    color: #4cc9f0;
+    font-size: 14px;
+}
+
+.dev-test-ending-btn {
+    background: #2ecc71;
+    color: #111;
+    border: none;
+    border-radius: 3px;
+    padding: 4px 8px;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.dev-test-ending-btn:hover {
+    background: #27ae60;
+}
+
+/* Teleport Form */
+.dev-teleport-form {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.dev-teleport-form input {
+    flex: 1;
+    padding: 5px;
+    background: #222;
+    border: 1px solid #444;
+    color: #eee;
+    border-radius: 3px;
+}
+
+.dev-teleport-form button {
+    background: #4cc9f0;
+    color: #111;
+    border: none;
+    border-radius: 3px;
+    padding: 5px 10px;
+    cursor: pointer;
+}
+
+/* Event Buttons */
+.dev-events-container {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+}
+
+.dev-event-btn {
+    background: #9b59b6;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    padding: 8px 10px;
+    cursor: pointer;
+    font-size: 13px;
+    text-align: left;
+}
+
+.dev-event-btn:hover {
+    background: #8e44ad;
+}
+
+/* Companion Status in Dev Tools */
+.dev-companion-status {
+    background: rgba(30, 30, 40, 0.8);
+    border-radius: 5px;
+    padding: 12px;
+    margin-bottom: 10px;
+    font-family: monospace;
+    font-size: 12px;
+    color: #ddd;
+    white-space: pre-wrap;
+    line-height: 1.5;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.dev-companion-status:empty::before {
+    content: "No companion data available";
+    color: #888;
+    font-style: italic;
+} 

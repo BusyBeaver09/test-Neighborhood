@@ -1,0 +1,549 @@
+/**
+ * companion-system.css - Styling for companion UI elements
+ */
+
+/* Companion System Styles - Pixel Art Aesthetic */
+
+/* Companion UI Container */
+.companion-ui {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    z-index: 100;
+}
+
+/* Companion Status Display */
+.companion-status {
+    background-color: rgba(0,0,0,0.7);
+    border-radius: 5px;
+    padding: 10px;
+    display: flex;
+    align-items: center;
+    color: white;
+    margin-bottom: 5px;
+    transition: opacity 0.3s;
+    opacity: 0;
+}
+
+.companion-status.joining {
+    animation: fadeIn 0.5s forwards;
+}
+
+@keyframes fadeIn {
+    0% { opacity: 0; transform: translateY(10px); }
+    100% { opacity: 1; transform: translateY(0); }
+}
+
+.companion-portrait {
+    width: 48px;
+    height: 48px;
+    background-size: cover;
+    border-radius: 3px;
+    margin-right: 10px;
+    cursor: pointer;
+    border: 2px solid #444;
+    transition: border-color 0.2s;
+}
+
+.companion-portrait:hover {
+    border-color: #f0f0f0;
+}
+
+.companion-portrait.companion-camille {
+    background-image: url('../assets/characters/camille_portrait.png');
+}
+
+.companion-portrait.companion-jake {
+    background-image: url('../assets/characters/jake_portrait.png');
+}
+
+.companion-portrait.companion-lila {
+    background-image: url('../assets/characters/lila_portrait.png');
+}
+
+.companion-info {
+    flex: 1;
+}
+
+.companion-name {
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.companion-ability {
+    font-size: 0.9em;
+    opacity: 0.8;
+}
+
+.companion-dismiss {
+    background-color: #e74c3c;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 3px;
+    cursor: pointer;
+    margin-left: 10px;
+    transition: background-color 0.2s;
+}
+
+.companion-dismiss:hover {
+    background-color: #c0392b;
+}
+
+/* Companion character in game world */
+.companion-character {
+    width: 32px;
+    height: 48px;
+    position: absolute;
+    z-index: 5;
+    transition: left 0.2s, top 0.2s;
+    image-rendering: pixelated;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: crisp-edges;
+}
+
+.companion-character.camille {
+    background-image: url('../assets/characters/camille.png');
+}
+
+.companion-character.jake {
+    background-image: url('../assets/characters/jake.png');
+}
+
+.companion-character.lila {
+    background-image: url('../assets/characters/lila.png');
+}
+
+/* Companion special effect when using ability */
+.companion-ability-effect {
+    position: absolute;
+    width: 64px;
+    height: 64px;
+    background-size: contain;
+    background-repeat: no-repeat;
+    pointer-events: none;
+    z-index: 15;
+    animation: ability-pulse 1.5s forwards;
+}
+
+@keyframes ability-pulse {
+    0% { transform: scale(0.2); opacity: 0; }
+    40% { transform: scale(1.2); opacity: 1; }
+    100% { transform: scale(1); opacity: 0; }
+}
+
+.camille-effect {
+    background-image: url('../assets/effects/camille_ability.png');
+}
+
+.jake-effect {
+    background-image: url('../assets/effects/jake_ability.png');
+}
+
+.lila-effect {
+    background-image: url('../assets/effects/lila_ability.png');
+}
+
+/* Companion comments bubble */
+.companion-comment {
+    position: absolute;
+    background-color: rgba(255, 255, 255, 0.9);
+    border-radius: 10px;
+    padding: 10px 15px;
+    max-width: 200px;
+    font-size: 14px;
+    color: #333;
+    z-index: 20;
+    animation: comment-appear 0.3s forwards, comment-disappear 0.3s 3.7s forwards;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+.companion-comment::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 15px;
+    border-width: 10px 10px 0;
+    border-style: solid;
+    border-color: rgba(255, 255, 255, 0.9) transparent;
+}
+
+@keyframes comment-appear {
+    0% { opacity: 0; transform: translateY(-10px); }
+    100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes comment-disappear {
+    0% { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-10px); }
+}
+
+/* Companion Notes UI */
+.companion-notes {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 400px;
+    max-height: 500px;
+    background-color: #1a1a2e;
+    border: 3px solid #e94560;
+    border-radius: 10px;
+    padding: 20px;
+    z-index: 999;
+    display: none;
+    overflow-y: auto;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.6);
+    font-family: 'Courier New', monospace;
+}
+
+.companion-notes-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+    gap: 15px;
+}
+
+.notes-portrait {
+    width: 60px;
+    height: 60px;
+    border-radius: 8px;
+    background-size: cover;
+    border: 2px solid #e94560;
+    image-rendering: pixelated;
+}
+
+.notes-title {
+    flex: 1;
+}
+
+.notes-name {
+    margin: 0 0 5px 0;
+    color: #e94560;
+    font-size: 18px;
+}
+
+.notes-role {
+    margin: 0;
+    font-size: 14px;
+    color: #bbe1fa;
+}
+
+.companion-notes-content {
+    margin-bottom: 20px;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.notes-close {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background-color: transparent;
+    color: #e94560;
+    border: 1px solid #e94560;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.notes-close:hover {
+    background-color: #e94560;
+    color: white;
+}
+
+.notes-ability {
+    background-color: rgba(83, 52, 131, 0.3);
+    border-radius: 8px;
+    padding: 10px;
+    margin-top: 15px;
+}
+
+.notes-ability-title {
+    margin: 0 0 8px 0;
+    color: #bbe1fa;
+    font-size: 16px;
+}
+
+.notes-ability-desc {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+/* Companion Join Animation */
+@keyframes companionJoin {
+    0% { transform: translateY(20px); opacity: 0; }
+    100% { transform: translateY(0); opacity: 1; }
+}
+
+.companion-status.joining {
+    animation: companionJoin 0.5s ease forwards;
+}
+
+/* Companion indicator for interactable objects */
+.companion-interactable {
+    position: absolute;
+    width: 24px;
+    height: 24px;
+    background-size: contain;
+    background-repeat: no-repeat;
+    pointer-events: none;
+    z-index: 15;
+    animation: floatAnimation 2s infinite ease-in-out;
+    image-rendering: pixelated;
+}
+
+@keyframes floatAnimation {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-5px); }
+}
+
+/* Dev Tools Companion Section */
+.dev-companion-tools {
+    background-color: rgba(26, 26, 46, 0.9);
+    border: 2px solid #e94560;
+    border-radius: 8px;
+    padding: 15px;
+    margin-top: 10px;
+}
+
+.dev-companion-tools h3 {
+    margin: 0 0 10px 0;
+    color: #e94560;
+    font-size: 16px;
+}
+
+.dev-companion-tools button {
+    display: block;
+    width: 100%;
+    margin-bottom: 8px;
+    font-size: 12px;
+}
+
+.dev-companion-tools select {
+    width: 100%;
+    background-color: #2c2c4a;
+    color: white;
+    border: 1px solid #e94560;
+    border-radius: 4px;
+    padding: 5px;
+    margin-bottom: 8px;
+    font-family: 'Courier New', monospace;
+}
+
+/* Companion dialogue bubble */
+.companion-dialogue {
+    position: fixed;
+    max-width: 250px;
+    background-color: rgba(15, 52, 96, 0.9);
+    color: #e6e6e6;
+    padding: 12px 15px;
+    border-radius: 8px;
+    font-size: 14px;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.4);
+    z-index: 801;
+    animation: fadeIn 0.3s ease;
+    border: 1px solid rgba(76, 201, 240, 0.5);
+}
+
+.companion-dialogue::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 20px;
+    border-width: 10px 10px 0;
+    border-style: solid;
+    border-color: rgba(15, 52, 96, 0.9) transparent transparent;
+}
+
+/* Companion sprite */
+.companion-sprite {
+    position: absolute;
+    width: 32px;
+    height: 48px;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center bottom;
+    z-index: 150; /* behind player but above environment */
+    transition: left 0.3s ease, top 0.3s ease;
+    pointer-events: none;
+}
+
+/* Companion Notes UI */
+.companion-notes {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 80%;
+    max-width: 500px;
+    max-height: 80vh;
+    background-color: rgba(15, 52, 96, 0.95);
+    border-radius: 10px;
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.6);
+    z-index: 900;
+    display: none;
+    flex-direction: column;
+    overflow: hidden;
+    border: 2px solid rgba(76, 201, 240, 0.7);
+}
+
+.companion-notes-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    background-color: rgba(22, 33, 62, 0.9);
+    border-bottom: 1px solid rgba(76, 201, 240, 0.4);
+}
+
+.companion-notes-title {
+    color: #4cc9f0;
+    font-size: 20px;
+    font-weight: bold;
+    margin: 0;
+}
+
+.companion-notes-close {
+    background-color: transparent;
+    color: #e6e6e6;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+}
+
+.companion-notes-close:hover {
+    color: #4cc9f0;
+}
+
+.companion-notes-content {
+    padding: 20px;
+    overflow-y: auto;
+    max-height: 60vh;
+}
+
+.companion-thoughts {
+    background-color: rgba(22, 33, 62, 0.6);
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    color: #e6e6e6;
+    font-style: italic;
+    border-left: 3px solid #4cc9f0;
+}
+
+.companion-trust {
+    margin-bottom: 20px;
+}
+
+.companion-trust-label {
+    color: #bbc3c7;
+    margin-bottom: 5px;
+    display: block;
+}
+
+.companion-trust-bar {
+    height: 10px;
+    background-color: rgba(22, 33, 62, 0.6);
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+.companion-trust-fill {
+    height: 100%;
+    background-color: #4cc9f0;
+    border-radius: 5px;
+    transition: width 0.5s ease;
+}
+
+.companion-notes-footer {
+    padding: 15px 20px;
+    background-color: rgba(22, 33, 62, 0.9);
+    border-top: 1px solid rgba(76, 201, 240, 0.4);
+    display: flex;
+    justify-content: flex-end;
+}
+
+.companion-dismiss-btn {
+    background-color: #e74c3c;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 8px 15px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.2s ease;
+}
+
+.companion-dismiss-btn:hover {
+    background-color: #c0392b;
+}
+
+/* Animation */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Different color schemes for different companions */
+.companion-camille .companion-portrait {
+    border-color: #9b59b6;
+    box-shadow: 0 0 10px rgba(155, 89, 182, 0.5);
+}
+
+.companion-jake .companion-portrait {
+    border-color: #e67e22;
+    box-shadow: 0 0 10px rgba(230, 126, 34, 0.5);
+}
+
+.companion-lila .companion-portrait {
+    border-color: #3498db;
+    box-shadow: 0 0 10px rgba(52, 152, 219, 0.5);
+}
+
+/* Animation Classes */
+.companion-character.walking {
+    animation: companion-walk 0.5s steps(3) infinite;
+}
+
+.companion-character.talking {
+    animation: companion-talk 0.3s steps(2) infinite;
+}
+
+@keyframes companion-walk {
+    from { background-position: 0px; }
+    to { background-position: -96px; } /* 3 frames * 32px width */
+}
+
+@keyframes companion-talk {
+    from { background-position: 0px; }
+    to { background-position: -64px; } /* 2 frames * 32px width */
+}
+
+/* Individual character animations */
+.companion-character.camille {
+    width: 32px;
+    height: 64px;
+}
+
+.companion-character.jake {
+    width: 32px;
+    height: 64px;
+}
+
+.companion-character.lila {
+    width: 32px;
+    height: 64px;
+}
+
+/* Combined animation states */
+.companion-character.walking.talking {
+    /* Prioritize talking animation when both are active */
+    animation: companion-talk 0.3s steps(2) infinite;
+} 
